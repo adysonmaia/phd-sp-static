@@ -120,21 +120,18 @@ def gen_rand_apps(nb_apps, nb_nodes, nb_users):
     nb_users_per_type = [users_embb, users_urllc, users_mmtc]
 
     # [EMBB, URLlC, mMTC]
-    # deadline_per_type = [(10, 50), (1, 10), (50, 1000)]
-    # request_rate_per_type = [(0.01, 0.02), (0.01, 0.02), (0.001, 0.01)]
-    # work_size_per_type = [(1, 10), (1, 10), (1, 10)]
-    # storage_per_type = [(1, 10), (1, 10), (1, 10)]
-    # delay_per_type = [{"bs_bs": (1, 5), "bs_core": (1, 5), "core_cloud": (10, 50)},
-    #                   {"bs_bs": (1, 5), "bs_core": (1, 5), "core_cloud": (10, 50)},
-    #                   {"bs_bs": (1, 5), "bs_core": (1, 5), "core_cloud": (10, 50)}]
-
     deadline_per_type = [(10, 50), (1, 10), (50, 1000)]
     request_rate_per_type = [(0.01, 0.02), (0.01, 0.02), (0.001, 0.01)]
-    work_size_per_type = [(1, 10), (1, 10), (1, 10)]
-    storage_per_type = [(1, 10), (1, 10), (1, 10)]
+    work_size_per_type = [(1, 10), (1, 5), (1, 5)]
+    storage_per_type = [(1, 50), (1, 10), (1, 10)]
+
     delay_per_type = [{"bs_bs": 1, "bs_core": 1, "core_cloud": 10},
                       {"bs_bs": 1, "bs_core": 1, "core_cloud": 10},
                       {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}]
+
+    # delay_per_type = [{"bs_bs": (1, 5), "bs_core": (1, 5), "core_cloud": (10, 50)},
+    #                   {"bs_bs": (1, 5), "bs_core": (1, 5), "core_cloud": (10, 50)},
+    #                   {"bs_bs": (1, 5), "bs_core": (1, 5), "core_cloud": (10, 50)}]
 
     for t in range(nb_app_types):
         for i in range(nb_apps_per_type[t]):
@@ -147,7 +144,7 @@ def gen_rand_apps(nb_apps, nb_nodes, nb_users):
                 work_size = random.randrange(*work_size)
 
             cpu_demand_1 = work_size + 1
-            cpu_demand_2 = math.ceil(work_size / deadline)
+            cpu_demand_2 = random.randrange(int(work_size + 1))
 
             storage_demand_1 = storage_per_type[t]
             storage_demand_2 = storage_per_type[t]

@@ -1,12 +1,10 @@
-import input
-import path
+import csv
 import random
 import numpy as np
+import input
+import path
 import genetic
 import greedy
-
-
-INF = float("inf")
 
 
 # def main():
@@ -43,40 +41,51 @@ INF = float("inf")
 
 
 def main():
-    # random.seed(1)
-    # np.random.seed(1)
+    random.seed()
+    np.random.seed()
 
     nb_nodes = 21
+    r_nodes = [9, 21, 39]
     r_apps = range(10, 51, 10)
     r_users = range(1000, 10001, 3000)
-    nb_runs = 1
+    nb_runs = 30
+    solutions = {"greedy": greedy.solve_sp, "genetic": genetic.solve_sp}
 
-    for nb_apps in r_apps:
-        for nb_users in r_users:
-            e_greedy = []
-            e_genetic = []
-            for r in range(nb_runs):
-                apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
-                apps_demand = [a["demand"] for a in apps]
-                apps_link_delay = [a["delay"] for a in apps]
-                apps_users = [a["users"] for a in apps]
+    results = []
+    with open("output/result.csv", "w") as csv_file:
+        field_names = ["nodes", "apps", "users", "run", "solution", "value"]
+        writer = csv.DictWriter(csv_file, fieldnames=field_names)
+        writer.writeheader()
 
-                graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
-                net_delay = [path.calc_net_delay(g) for g in graphs]
-                nodes = input.gen_nodes_capacity(nb_nodes)
-                resources = nodes[0].keys()
-                users = input.gen_rand_users(nb_nodes, apps_users)
+        for nb_nodes in r_nodes:
+            for nb_apps in r_apps:
+                for nb_users in r_users:
+                    for run in range(nb_runs):
+                        apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
+                        apps_demand = [a["demand"] for a in apps]
+                        apps_link_delay = [a["delay"] for a in apps]
+                        apps_users = [a["users"] for a in apps]
 
-                result = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-                e_greedy.append(result[0])
+                        graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
+                        net_delay = [path.calc_net_delay(g) for g in graphs]
+                        nodes = input.gen_nodes_capacity(nb_nodes)
+                        resources = nodes[0].keys()
+                        users = input.gen_rand_users(nb_nodes, apps_users)
 
-                result = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-                e_genetic.append(result[0])
+                        for solution, funct in solutions.iteritems():
+                            result = funct(nodes, apps, users, resources,
+                                           net_delay, apps_demand)
+                            obj_value = result[0]
+                            row = {"nodes": nb_nodes,
+                                   "apps": nb_apps,
+                                   "users": nb_users,
+                                   "run": run,
+                                   "solution": solution,
+                                   "value": obj_value}
 
-            avg_e_greedy = round(sum(e_greedy) / float(nb_runs), 3)
-            avg_e_genetic = round(sum(e_genetic) / float(nb_runs), 3)
-            print(nb_apps, nb_users, "greedy", avg_e_greedy)
-            print(nb_apps, nb_users, "genetic", avg_e_genetic)
+                            writer.writerow(row)
+                            results.append(row)
+                            print(row)
 
 
 if __name__ == '__main__':

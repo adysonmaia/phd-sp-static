@@ -1,6 +1,5 @@
 import random
 import math
-from multiprocessing import Pool
 
 INF = float("inf")
 POOL_SIZE = 3
@@ -35,8 +34,6 @@ class BiasedRandomKeyGenetic:
         self._elite_size = int(round(self.elite_proportion * self.pop_size))
         self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
         self.initial_population = initial_population
-
-        self._pool = Pool(POOL_SIZE)
 
     def _gen_rand_individual(self):
         indiv = [random.random() for g in range(self.nb_genes)]
@@ -348,12 +345,6 @@ def solve_sp(nodes,
                                      nb_generations=100, population_size=100,
                                      elite_proportion=0.4, mutant_proportion=0.3,
                                      initial_population=init_pop)
-
-    # global global_fitness_func
-    # global_fitness_func = chromossome.fitness
-    # genetic = BiasedRandomKeyGenetic(chromossome.nb_genes,
-    #                                  pool_fitness_func,
-    #                                  chromossome.stopping_criteria)
 
     population = genetic.solve()
 
