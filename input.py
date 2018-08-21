@@ -86,7 +86,7 @@ def gen_rand_users(nb_nodes, app_users):
     nb_bs = nb_nodes - 2
     users = [[0 for n in range(nb_nodes)] for a in app_users]
     for a, nb_users in enumerate(app_users):
-        nodes = np.random.randint(nb_bs, size=nb_users)
+        nodes = np.random.randint(nb_bs, size=int(nb_users))
         for n in nodes:
             users[a][n] += 1
     return users
