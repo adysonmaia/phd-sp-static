@@ -1,10 +1,11 @@
 from docplex.mp.model import Model
+import math
 
 # Constants
 INF = float("inf")
-DIST_FACTOR = 0.001
 QUEUE_MIN_DIFF = 0.00001
-E_MAX = 100000.0
+# E_MAX = 100000.0
+E_MAX = 1000.0
 K1 = 0
 K2 = 1
 CPU = "CPU"
@@ -26,8 +27,11 @@ def solve_sp(nodes,
     r_nodes = range(nb_nodes)
     nb_apps = len(apps)
     r_apps = range(nb_apps)
-    nb_users = [sum(users[a]) for a in r_apps]
-    max_load = [apps[a][REQUEST_RATE] * nb_users[a] for a in r_apps]
+
+    requests = [[int(math.ceil(users[a][b] * apps[a][REQUEST_RATE]))
+                 for b in r_nodes]
+                for a in r_apps]
+    max_load = [sum(requests[a]) for a in r_apps]
 
     mdl = Model(name='ServicePlacement')
 
@@ -35,19 +39,18 @@ def solve_sp(nodes,
     dvar_place = mdl.binary_var_matrix(nb_apps, nb_nodes, name="I")
     dvar_flow_exists = mdl.binary_var_cube(nb_apps, nb_nodes, nb_nodes,
                                            name="F")
-    dvar_distribution = mdl.continuous_var_cube(nb_apps, nb_nodes, nb_nodes,
-                                                lb=0, ub=1, name="a")
+    dvar_distribution = mdl.integer_var_cube(nb_apps, nb_nodes, nb_nodes,
+                                             lb=0, name="a")
     dvar_e = mdl.continuous_var(lb=0, ub=E_MAX, name="e")
-    dvar_load_f = mdl.continuous_var_cube(nb_apps, nb_nodes, nb_nodes,
-                                          lb=0, name="lf")
+    dvar_load_f = mdl.integer_var_cube(nb_apps, nb_nodes, nb_nodes,
+                                       lb=0, name="lf")
     dvar_load_e = mdl.continuous_var_matrix(nb_apps, nb_nodes,
-                                            lb=0, name="le")
+                                            lb=0.0, name="le")
 
     # Decision Expresions
-    dexpr_load = {(a, h): mdl.sum(dvar_distribution[a, b, h]
-                                  * users[a][b] * apps[a][REQUEST_RATE]
-                                  for b in r_nodes)
-                  for a in r_apps for h in r_nodes}
+    dexpr_load = {(a, h): mdl.sum(dvar_distribution[a, b, h] for b in r_nodes)
+                  for a in r_apps
+                  for h in r_nodes}
 
     # Constraints
     # Number of Instances
@@ -59,24 +62,23 @@ def solve_sp(nodes,
                         for a in r_apps)
     # Request Flow Existance
     mdl.add_constraints(dvar_flow_exists[a, b, h]
-                        <= dvar_place[a, h] * users[a][b]
+                        <= dvar_place[a, h] * requests[a][b]
                         for a in r_apps
                         for b in r_nodes
                         for h in r_nodes)
     # Request Distribution Conservation
-    mdl.add_constraints(users[a][b]
-                        * (mdl.sum(dvar_distribution[a, b, h] for h in r_nodes)
-                            - 1.0)
-                        == 0.0
+    mdl.add_constraints(mdl.sum(dvar_distribution[a, b, h] for h in r_nodes)
+                        == requests[a][b]
                         for a in r_apps
                         for b in r_nodes)
     # Request Distribution Existance
-    mdl.add_constraints(dvar_distribution[a, b, h] <= dvar_flow_exists[a, b, h]
+    mdl.add_constraints(dvar_distribution[a, b, h]
+                        <= dvar_flow_exists[a, b, h] * requests[a][b]
                         for a in r_apps
                         for b in r_nodes
                         for h in r_nodes)
     mdl.add_constraints(dvar_distribution[a, b, h]
-                        >= dvar_flow_exists[a, b, h] * DIST_FACTOR
+                        >= dvar_flow_exists[a, b, h]
                         for a in r_apps
                         for b in r_nodes
                         for h in r_nodes)
@@ -121,15 +123,15 @@ def solve_sp(nodes,
                         for b in r_nodes
                         for h in r_nodes)
     # Deadline - Linearization of Quadratic Term 2
+    mdl.add_constraints(dvar_load_e[a, h]
+                        >= dvar_e * max_load[a]
+                        + E_MAX * (dexpr_load[a, h] - max_load[a])
+                        for a in r_apps
+                        for h in r_nodes)
     mdl.add_constraints(dvar_load_e[a, h] <= dvar_e * max_load[a]
                         for a in r_apps
                         for h in r_nodes)
     mdl.add_constraints(dvar_load_e[a, h] <= dexpr_load[a, h] * E_MAX
-                        for a in r_apps
-                        for h in r_nodes)
-    mdl.add_constraints(dvar_load_e[a, h]
-                        >= dvar_e * max_load[a]
-                        + dexpr_load[a, h] * E_MAX - max_load[a] * E_MAX
                         for a in r_apps
                         for h in r_nodes)
 
@@ -146,9 +148,11 @@ def solve_sp(nodes,
         # mdl.print_solution()
         place = [[h for h in r_nodes if dvar_place[a, h].solution_value > 0]
                  for a in r_apps]
-        distri = {(a, b, h): dvar_distribution[a, b, h].solution_value
+        distri = {(a, b, h):
+                  dvar_distribution[a, b, h].solution_value / float(requests[a][b])
                   for a in r_apps
                   for b in r_nodes
                   for h in r_nodes
-                  if dvar_distribution[a, b, h].solution_value > 0}
+                  if (dvar_distribution[a, b, h].solution_value > 0
+                      and requests[a][b] > 0)}
         return mdl.objective_value, place, distri
