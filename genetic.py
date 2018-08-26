@@ -1,8 +1,9 @@
 import random
 import math
+from pathos.multiprocessing import ProcessPool
 
 INF = float("inf")
-POOL_SIZE = 3
+POOL_SIZE = 0
 K1 = 0
 K2 = 1
 CPU = "CPU"
@@ -22,7 +23,8 @@ class BiasedRandomKeyGenetic:
                  nb_generations=100,
                  elite_proportion=0.5,
                  mutant_proportion=0.1,
-                 initial_population=[]):
+                 initial_population=[],
+                 pool_size=0):
 
         self.nb_genes = nb_genes
         self.fitness = fitness_func
@@ -35,11 +37,13 @@ class BiasedRandomKeyGenetic:
         self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
         self.initial_population = initial_population
 
+        if pool_size > 0:
+            self._pool = ProcessPool(pool_size)
+        else:
+            self._pool = None
+
     def _gen_rand_individual(self):
-        indiv = [random.random() for g in range(self.nb_genes)]
-        value = self.fitness(indiv)
-        indiv.append(value)
-        return indiv
+        return [random.random() for g in range(self.nb_genes)]
 
     # def _crossover(self, indiv_1, indiv_2, prob_1, prob_2):
     #     if prob_1 < prob_2:
@@ -55,9 +59,6 @@ class BiasedRandomKeyGenetic:
     #         else:
     #             offspring_2[g] = indiv_1[g]
     #
-    #     offspring_1[self.nb_genes] = self.fitness(offspring_1)
-    #     offspring_2[self.nb_genes] = self.fitness(offspring_2)
-    #
     #     return [offspring_1, offspring_2]
 
     def _crossover(self, indiv_1, indiv_2, prob_1, prob_2):
@@ -71,26 +72,30 @@ class BiasedRandomKeyGenetic:
             if random.random() < prob_1:
                 offspring_1[g] = indiv_2[g]
 
-        offspring_1[self.nb_genes] = self.fitness(offspring_1)
-
         return [offspring_1]
 
+    def _set_fitness(self, individual):
+        if len(individual) == self.nb_genes:
+            value = self.fitness(individual)
+            individual.append(value)
+        return individual
+
     def _classify_population(self, population):
+        map_func = map
+        if self._pool:
+            map_func = self._pool.map
+
+        population = map_func(self._set_fitness, population)
         population.sort(key=lambda indiv: indiv[self.nb_genes])
         return population
 
     def _gen_first_population(self):
-        pop = []
-        for indiv in self.initial_population:
-            value = self.fitness(indiv)
-            indiv.append(value)
-            pop.append(indiv)
+        pop = self.initial_population[:]
 
         rand_size = self.pop_size - len(pop)
         if rand_size > 0:
-            rand_pop = [self._gen_rand_individual()
-                        for i in range(rand_size)]
-            pop += rand_pop
+            pop += [self._gen_rand_individual()
+                    for i in range(rand_size)]
 
         return self._classify_population(pop)
 
@@ -123,7 +128,7 @@ class BiasedRandomKeyGenetic:
         self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
         pop = self._gen_first_population()
         for i in range(self.nb_generations):
-            if self.stopping_criteria is not None and self.stopping_criteria(pop):
+            if self.stopping_criteria and self.stopping_criteria(pop):
                 break
             pop = self._gen_next_population(pop)
         return pop
@@ -170,7 +175,6 @@ class SP_Chromosome:
     def stopping_criteria(self, population):
         best_indiv = population[0]
         best_value = best_indiv[self.nb_genes]
-        # print(best_value)
         return best_value == 0.0
 
     def fitness(self, individual):
@@ -336,15 +340,22 @@ def solve_sp(nodes,
              users,
              resources,
              net_delay,
-             demand):
+             demand,
+             nb_generations=100,
+             population_size=100,
+             elite_proportion=0.4,
+             mutant_proportion=0.3):
 
     chromossome = SP_Chromosome(nodes, apps, users, resources, net_delay, demand)
     init_pop = chromossome.gen_init_population()
     genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
                                      chromossome.stopping_criteria,
-                                     nb_generations=100, population_size=100,
-                                     elite_proportion=0.4, mutant_proportion=0.3,
-                                     initial_population=init_pop)
+                                     nb_generations=nb_generations,
+                                     population_size=population_size,
+                                     elite_proportion=elite_proportion,
+                                     mutant_proportion=mutant_proportion,
+                                     initial_population=init_pop,
+                                     pool_size=POOL_SIZE)
 
     population = genetic.solve()
 

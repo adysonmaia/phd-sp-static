@@ -1,46 +1,98 @@
 import csv
 import random
 import numpy as np
+import sys
 import input
 import path
 import genetic
 import greedy
+import minlp
 
 
-# def main():
-#     random.seed(1)
-#     np.random.seed(1)
-#
-#     nb_nodes = 21
-#     # nb_nodes = 9
-#     nb_apps = 100
-#     nb_users = 10000
-#
-#     apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
-#     apps_demand = [a["demand"] for a in apps]
-#     apps_link_delay = [a["delay"] for a in apps]
-#     apps_users = [a["users"] for a in apps]
-#
-#     graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
-#     net_delay = [path.calc_net_delay(g) for g in graphs]
-#     nodes = input.gen_nodes_capacity(nb_nodes)
-#     resources = nodes[0].keys()
-#     users = input.gen_rand_users(nb_nodes, apps_users)
-#
-#     greedy_solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-#     print("greedy", greedy_solution[0])
-#     genetic_solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-#     print("genetic", genetic_solution[0])
-#     print("greedy", greedy_solution[0])
-#
-#     # print("Objective value: e = %.3f" % (solution[0]))
-#     # print("\nApps Location:\nplace app a at nodes in list[a]")
-#     # print(solution[1])
-#     # print("\nRequests Distribution:\n(app, src, dest): value")
-#     # print(solution[2])
+def exp_3(args=[]):
+    random.seed()
+    np.random.seed()
+
+    nb_nodes = 21
+    nb_apps = 30
+    nb_users = 1000
+    # nb_runs = 30
+    nb_runs = 1
+
+    r_gen = range(50, 501, 50)
+    r_pop = range(100, 501, 100)
+
+    results = []
+    with open("output/result_exp_3.csv", "w") as csv_file:
+        field_names = ["nb_gens", "pop_size", "run", "value"]
+        writer = csv.DictWriter(csv_file, fieldnames=field_names)
+        writer.writeheader()
+
+        for run in range(nb_runs):
+            apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
+            apps_demand = [a["demand"] for a in apps]
+            apps_link_delay = [a["delay"] for a in apps]
+            apps_users = [a["users"] for a in apps]
+
+            graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
+            net_delay = [path.calc_net_delay(g) for g in graphs]
+            nodes = input.gen_nodes_capacity(nb_nodes)
+            resources = nodes[0].keys()
+            users = input.gen_rand_users(nb_nodes, apps_users)
+
+            for gen in r_gen:
+                for pop in r_pop:
+                        result = genetic.solve_sp(nodes, apps, users, resources,
+                                                  net_delay, apps_demand,
+                                                  nb_generations=gen,
+                                                  population_size=pop)
+                        obj_value = result[0]
+                        row = {"nb_gens": gen,
+                               "pop_size": pop,
+                               "run": run,
+                               "value": obj_value}
+
+                        writer.writerow(row)
+                        results.append(row)
+                        print(row)
 
 
-def main():
+def exp_2(args=[]):
+    random.seed(1)
+    np.random.seed(1)
+
+    nb_nodes = 21
+    # nb_nodes = 9
+    nb_apps = 20
+    nb_users = 1000
+    if len(args) >= 3:
+        nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
+
+    apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
+    apps_demand = [a["demand"] for a in apps]
+    apps_link_delay = [a["delay"] for a in apps]
+    apps_users = [a["users"] for a in apps]
+
+    graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
+    net_delay = [path.calc_net_delay(g) for g in graphs]
+    nodes = input.gen_nodes_capacity(nb_nodes)
+    resources = nodes[0].keys()
+    users = input.gen_rand_users(nb_nodes, apps_users)
+
+    greedy_solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    print("greedy", greedy_solution[0])
+    genetic_solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    print("genetic", genetic_solution[0])
+    minlp_solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    if minlp_solution:
+        print("minlp - relaxed", minlp_solution[0])
+        print("minlp - original", minlp_solution[3])
+    else:
+        print("minlp - relaxed", float('inf'))
+        print("minlp - original", float('inf'))
+
+
+def exp_1(args=[]):
     random.seed()
     np.random.seed()
 
@@ -89,4 +141,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    args = sys.argv[1:]
+    experiment = args[0] if args else 'exp_2'
+    if experiment in locals():
+        exp_func = locals()[experiment]
+        exp_func(args[1:])
