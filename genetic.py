@@ -1,6 +1,6 @@
 import random
 import math
-from pathos.multiprocessing import ProcessPool
+from pathos.threading import ThreadPool
 
 INF = float("inf")
 POOL_SIZE = 0
@@ -38,7 +38,7 @@ class BiasedRandomKeyGenetic:
         self.initial_population = initial_population
 
         if pool_size > 0:
-            self._pool = ProcessPool(pool_size)
+            self._pool = ThreadPool(pool_size)
         else:
             self._pool = None
 
