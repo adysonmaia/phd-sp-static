@@ -50,8 +50,8 @@ class BiasedRandomKeyGenetic:
     #         indiv_1, indiv_2 = indiv_2, indiv_1
     #         prob_1, prob_2 = prob_2, prob_1
     #
-    #     offspring_1 = indiv_1[:]
-    #     offspring_2 = indiv_2[:]
+    #     offspring_1 = indiv_1[:self.nb_genes]
+    #     offspring_2 = indiv_2[:self.nb_genes]
     #
     #     for g in range(self.nb_genes):
     #         if random.random() < prob_1:
@@ -66,7 +66,7 @@ class BiasedRandomKeyGenetic:
             indiv_1, indiv_2 = indiv_2, indiv_1
             prob_1, prob_2 = prob_2, prob_1
 
-        offspring_1 = indiv_1[:]
+        offspring_1 = indiv_1[:self.nb_genes]
 
         for g in range(self.nb_genes):
             if random.random() < prob_1:

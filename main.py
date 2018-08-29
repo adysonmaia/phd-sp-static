@@ -13,10 +13,10 @@ def exp_4(args=[]):
     random.seed()
     np.random.seed()
 
-    r_nodes = [21]
-    r_apps = range(10, 31, 10)
-    r_users = range(100, 1001, 300)
-    nb_runs = 1
+    r_nodes = [9]
+    r_apps = range(10, 51, 10)
+    r_users = range(1000, 10001, 3000)
+    nb_runs = 30
     solutions = {"greedy": greedy.solve_sp, "genetic": genetic.solve_sp, "minlp": minlp.solve_sp}
 
     results = []
@@ -46,7 +46,7 @@ def exp_4(args=[]):
                             values = None
                             if title == "minlp":
                                 if not result:
-                                    result = [float('inf')] * 3
+                                    result = [float('inf')] * 4
                                 values = [("minlp - relaxed", result[0]),
                                           ("minlp - original", result[3])]
                             else:
@@ -134,24 +134,24 @@ def exp_2(args=[]):
     resources = nodes[0].keys()
     users = input.gen_rand_users(nb_nodes, apps_users)
 
-    # greedy_solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # print("greedy", greedy_solution[0])
+    greedy_solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    print("greedy", greedy_solution[0])
     genetic_solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
     print("genetic", genetic_solution[0])
-    # minlp_solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # if minlp_solution:
-    #     print("minlp - relaxed", minlp_solution[0])
-    #     print("minlp - original", minlp_solution[3])
-    # else:
-    #     print("minlp - relaxed", float('inf'))
-    #     print("minlp - original", float('inf'))
+    minlp_solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    if minlp_solution:
+        print("minlp - relaxed", minlp_solution[0])
+        print("minlp - original", minlp_solution[3])
+    else:
+        print("minlp - relaxed", float('inf'))
+        print("minlp - original", float('inf'))
 
 
 def exp_1(args=[]):
     random.seed()
     np.random.seed()
 
-    r_nodes = [9, 21, 39]
+    r_nodes = [9, 21]
     r_apps = range(10, 51, 10)
     r_users = range(1000, 10001, 3000)
     nb_runs = 30
