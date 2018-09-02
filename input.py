@@ -121,7 +121,7 @@ def gen_rand_apps(nb_apps, nb_nodes, nb_users):
 
     # [EMBB, URLlC, mMTC]
     deadline_per_type = [(10, 50), (1, 10), (50, 1000)]
-    request_rate_per_type = [(0.01, 0.02), (0.01, 0.02), (0.001, 0.01)]
+    request_rate_per_type = [(0.02, 0.01), (0.02, 0.01), (0.001, 0.01)]
     work_size_per_type = [(1, 10), (1, 5), (1, 5)]
     storage_per_type = [(1, 50), (1, 10), (1, 10)]
 

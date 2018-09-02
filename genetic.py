@@ -1,6 +1,9 @@
 import random
 import math
-from pathos.threading import ThreadPool
+import time
+# from pathos.threading import ThreadPool
+from pathos.multiprocessing import ProcessPool
+# from pool import ThreadPool
 
 INF = float("inf")
 POOL_SIZE = 0
@@ -38,7 +41,7 @@ class BiasedRandomKeyGenetic:
         self.initial_population = initial_population
 
         if pool_size > 0:
-            self._pool = ThreadPool(pool_size)
+            self._pool = ProcessPool(pool_size)
         else:
             self._pool = None
 
@@ -85,7 +88,11 @@ class BiasedRandomKeyGenetic:
         if self._pool:
             map_func = self._pool.map
 
+        # start_time = time.time()
         population = map_func(self._set_fitness, population)
+        # elapsed_time = time.time() - start_time
+        # print(elapsed_time)
+
         population.sort(key=lambda indiv: indiv[self.nb_genes])
         return population
 
@@ -127,11 +134,15 @@ class BiasedRandomKeyGenetic:
         self._elite_size = int(round(self.elite_proportion * self.pop_size))
         self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
         pop = self._gen_first_population()
-        for i in range(self.nb_generations):
-            if self.stopping_criteria and self.stopping_criteria(pop):
-                break
-            pop = self._gen_next_population(pop)
-        return pop
+        try:
+            for i in range(self.nb_generations):
+                if self.stopping_criteria and self.stopping_criteria(pop):
+                    break
+                pop = self._gen_next_population(pop)
+        except KeyboardInterrupt:
+            raise
+        finally:
+            return pop
 
 
 class SP_Chromosome:
@@ -341,7 +352,7 @@ def solve_sp(nodes,
              resources,
              net_delay,
              demand,
-             nb_generations=100,
+             nb_generations=200,
              population_size=100,
              elite_proportion=0.4,
              mutant_proportion=0.3):

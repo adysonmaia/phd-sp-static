@@ -22,7 +22,8 @@ class MINLP:
                  users,
                  resources,
                  net_delay,
-                 demand):
+                 demand,
+                 time_limit=0):
 
         self.nodes = nodes
         self.apps = apps
@@ -30,6 +31,7 @@ class MINLP:
         self.resources = resources
         self.net_delay = net_delay
         self.demand = demand
+        self.time_limit = time_limit
 
     def solve(self):
         # Auxiliar Variables
@@ -167,9 +169,12 @@ class MINLP:
         # mdl.float_precision = 3
         # mdl.print_information()
 
+        if self.time_limit > 0:
+            mdl.context.cplex_parameters.timelimit = self.time_limit
+
         # Solving
         if not mdl.solve():
-            return None
+            return INF, None, None, INF
         else:
             # mdl.print_solution()
             place = [[h for h in r_nodes if dvar_place[a, h].solution_value > 0]
@@ -226,6 +231,7 @@ def solve_sp(nodes,
              users,
              resources,
              net_delay,
-             demand):
-    model = MINLP(nodes, apps, users, resources, net_delay, demand)
+             demand,
+             time_limit=900):
+    model = MINLP(nodes, apps, users, resources, net_delay, demand, time_limit)
     return model.solve()
