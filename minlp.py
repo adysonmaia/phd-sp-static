@@ -1,4 +1,5 @@
 from docplex.mp.model import Model
+from collections import namedtuple
 import math
 
 # Constants
@@ -174,23 +175,37 @@ class MINLP:
 
         # Solving
         if not mdl.solve():
-            return INF, None, None, INF
-        else:
-            # mdl.print_solution()
-            place = [[h for h in r_nodes if dvar_place[a, h].solution_value > 0]
-                     for a in r_apps]
-            distri = {(a, b, h):
-                      dvar_distribution[a, b, h].solution_value
-                      / float(requests[a][b])
-                      for a in r_apps
-                      for b in r_nodes
-                      for h in r_nodes
-                      if (dvar_distribution[a, b, h].solution_value > 0
-                          and requests[a][b] > 0)}
-            relaxed_value = mdl.objective_value
-            original_value = self._calc_original_qos_violation(dvar_place,
-                                                               dvar_distribution)
-            return relaxed_value, place, distri, original_value
+            if self.time_limit <= 0:
+                return INF, None, None, INF
+
+            SV = namedtuple("SolutionValue", ["solution_value"])
+            OV = namedtuple("ObjectiveValue", ["objective_value"])
+            cloud = nb_nodes - 1
+            dvar_place = {(a, h): SV(0 if b != cloud else 1)
+                          for a in r_apps
+                          for h in r_nodes}
+            dvar_distribution = {(a, b, h): SV(0 if h != cloud else requests[a][b])
+                                 for a in r_apps
+                                 for b in r_nodes
+                                 for h in r_nodes}
+            mdl = OV(INF)
+        # else:
+        #     mdl.print_solution()
+
+        place = [[h for h in r_nodes if dvar_place[a, h].solution_value > 0]
+                 for a in r_apps]
+        distri = {(a, b, h):
+                  dvar_distribution[a, b, h].solution_value
+                  / float(requests[a][b])
+                  for a in r_apps
+                  for b in r_nodes
+                  for h in r_nodes
+                  if (dvar_distribution[a, b, h].solution_value > 0
+                      and requests[a][b] > 0)}
+        relaxed_value = mdl.objective_value
+        original_value = self._calc_original_qos_violation(dvar_place,
+                                                           dvar_distribution)
+        return relaxed_value, place, distri, original_value
 
     def _calc_original_qos_violation(self, dvar_place, dvar_distribution):
         r_apps = range(len(self.apps))
@@ -232,6 +247,6 @@ def solve_sp(nodes,
              resources,
              net_delay,
              demand,
-             time_limit=900):
+             time_limit=0):
     model = MINLP(nodes, apps, users, resources, net_delay, demand, time_limit)
     return model.solve()
