@@ -1,7 +1,6 @@
 import math
 
 INF = float("inf")
-POOL_SIZE = 3
 K1 = 0
 K2 = 1
 CPU = "CPU"
@@ -27,8 +26,6 @@ class Greedy:
         self.resources = resources
         self.net_delay = net_delay
         self.demand = demand
-
-        self.nb_genes = len(apps) * (2 * len(nodes) + 1)
 
     def solve(self):
         nb_apps = len(self.apps)

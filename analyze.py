@@ -1,12 +1,15 @@
+import sys
 import csv
 import numpy as np
 import scipy.stats as st
+import matplotlib
 import matplotlib.pyplot as plt
 
+
 DPI = 100
-Y_LIMITS = [-0.2, 11]
+Y_LIMITS = [-0.2, 14]
 Y_TICKS = range(0, 13, 1)
-Y_LABEL = "QoS Violation (e) - ms"
+Y_LABEL = r"QoS Violation $\varepsilon$ - ms"
 
 
 def get_data_from_file(filename):
@@ -32,8 +35,9 @@ def filter_data(data, apps=[], nodes=[], users=[], solutions=[]):
 def gen_apps_figure(data, solutions, apps, nb_nodes, nb_users,
                     filename=None, nb_runs=30):
     plt.clf()
+    matplotlib.rcParams.update({'font.size': 17})
     filtered = filter_data(data, nodes=[nb_nodes], users=[nb_users])
-    formats = ["-o", "-^"]
+    formats = ["-o", "-^", "--s", "-d", "--o", "-s"]
     formats_len = len(formats)
     line = 0
     x = apps
@@ -45,7 +49,11 @@ def gen_apps_figure(data, solutions, apps, nb_nodes, nb_users,
             data = filter_data(sol_data, apps=[nb_apps])
             values = map(lambda row: float(row["value"]), data)
             mean = np.mean(values)
-            error = st.t.interval(0.95, nb_runs - 1, loc=mean, scale=st.sem(values))
+            sem = st.sem(values)
+            if sem > 0.0:
+                error = st.t.interval(0.95, nb_runs - 1, loc=mean, scale=sem)
+            else:
+                error = [mean, mean]
             y.append(mean)
             y_errors.append(error[1] - mean)
 
@@ -53,7 +61,8 @@ def gen_apps_figure(data, solutions, apps, nb_nodes, nb_users,
         plt.errorbar(x, y, yerr=y_errors, label=solution, fmt=line_format)
         line += 1
 
-    plt.legend(loc='upper left', numpoints=1)
+    ncol = 3 if len(solutions) > 4 else 2
+    plt.legend(loc='upper left', numpoints=1, ncol=ncol, columnspacing=0.5)
     plt.xlabel('Number of Applications')
     plt.ylabel(Y_LABEL)
     plt.xlim(x[0]-1, x[-1]+1)
@@ -64,14 +73,15 @@ def gen_apps_figure(data, solutions, apps, nb_nodes, nb_users,
     if not filename:
         plt.show()
     else:
-        plt.savefig(filename, dpi=DPI)
+        plt.savefig(filename, dpi=DPI, bbox_inches="tight", pad_inches=0.05)
 
 
 def gen_users_figure(data, solutions, users, nb_apps, nb_nodes,
                      filename=None, nb_runs=30):
     plt.clf()
+    matplotlib.rcParams.update({'font.size': 17})
     filtered = filter_data(data, apps=[nb_apps], nodes=[nb_nodes])
-    formats = ["-o", "-^"]
+    formats = ["-o", "-^", "--s", "-d", "--o", "-s"]
     formats_len = len(formats)
     line = 0
     x = users
@@ -83,7 +93,11 @@ def gen_users_figure(data, solutions, users, nb_apps, nb_nodes,
             data = filter_data(sol_data, users=[nb_users])
             values = map(lambda row: float(row["value"]), data)
             mean = np.mean(values)
-            error = st.t.interval(0.95, nb_runs - 1, loc=mean, scale=st.sem(values))
+            sem = st.sem(values)
+            if sem > 0.0:
+                error = st.t.interval(0.95, nb_runs - 1, loc=mean, scale=sem)
+            else:
+                error = [mean, mean]
             y.append(mean)
             y_errors.append(error[1] - mean)
 
@@ -91,7 +105,8 @@ def gen_users_figure(data, solutions, users, nb_apps, nb_nodes,
         plt.errorbar(x, y, yerr=y_errors, label=solution, fmt=line_format)
         line += 1
 
-    plt.legend(loc='upper left', numpoints=1)
+    ncol = 3 if len(solutions) > 4 else 2
+    plt.legend(loc='upper left', numpoints=1, ncol=ncol, columnspacing=0.5)
     plt.xlabel('Number of Users')
     plt.ylabel(Y_LABEL)
     plt.xlim(x[0]-100, x[-1]+100)
@@ -102,7 +117,7 @@ def gen_users_figure(data, solutions, users, nb_apps, nb_nodes,
     if not filename:
         plt.show()
     else:
-        plt.savefig(filename, dpi=DPI)
+        plt.savefig(filename, dpi=DPI, bbox_inches="tight", pad_inches=0.05)
 
 
 def gen_users_apps_figure(data, solutions, users, apps, nb_nodes,
@@ -123,10 +138,10 @@ def gen_users_apps_figure(data, solutions, users, apps, nb_nodes,
                 values = map(lambda row: float(row["value"]), data)
                 mean = np.mean(values)
                 sem = st.sem(values)  # Std Error Mean
-                if mean > 0.0 and sem > 0.0:
+                if sem > 0.0:
                     error = st.t.interval(0.95, nb_runs - 1, loc=mean, scale=sem)
                 else:
-                    error = [0.0, 0.0]
+                    error = [mean, mean]
                 y.append(mean)
                 y_errors.append(error[1] - mean)
 
@@ -149,16 +164,47 @@ def gen_users_apps_figure(data, solutions, users, apps, nb_nodes,
         plt.savefig(filename, dpi=DPI)
 
 
-def main():
+def exp_2(args=[]):
     data = get_data_from_file("output/result.csv")
-    solutions = ["greedy", "genetic"]
+    solutions = ["greedy", "genetic", "cloud", "milp-minlp", "milp"]
 
-    # users = range(1000, 10001, 3000)
-    # # gen_users_figure(data, solutions, users, 30, 9, filename="output/fig_users.png")
-    # gen_users_figure(data, solutions, users, 30, 9)
+    users = range(1000, 10001, 3000)
+    gen_users_figure(data, solutions, users, nb_apps=30, nb_nodes=9,
+                     filename="output/exp_n9_a30_users.png")
+
+    gen_users_figure(data, solutions, users, nb_apps=20, nb_nodes=9,
+                     filename="output/exp_n9_a20_users.png")
 
     apps = range(10, 51, 10)
-    gen_apps_figure(data, solutions, apps, nb_nodes=9, nb_users=4000)
+    gen_apps_figure(data, solutions, apps, nb_nodes=9, nb_users=4000,
+                    filename="output/exp_n9_u4k_apps.png")
+
+    # Part II
+    solutions = ["greedy", "genetic", "cloud", "milp-minlp-t"]
+
+    users = range(1000, 10001, 3000)
+    gen_users_figure(data, solutions, users, nb_apps=30, nb_nodes=21,
+                     filename="output/exp_n21_a30_users.png")
+
+    gen_users_figure(data, solutions, users, nb_apps=20, nb_nodes=21,
+                     filename="output/exp_n21_a20_users.png")
+
+    apps = range(10, 51, 10)
+    gen_apps_figure(data, solutions, apps, nb_nodes=21, nb_users=4000,
+                    filename="output/exp_n21_u4k_apps.png")
+
+
+def exp_1(args=[]):
+    data = get_data_from_file("output/result.csv")
+    # solutions = ["greedy", "genetic", "cloud", "milp", "milp-minlp"]
+    solutions = ["greedy", "genetic", "cloud", "milp-minlp-t"]
+
+    users = range(1000, 10001, 3000)
+    # gen_users_figure(data, solutions, users, 30, 9, filename="output/fig_users.png")
+    gen_users_figure(data, solutions, users, nb_apps=30, nb_nodes=21)
+
+    # apps = range(10, 51, 10)
+    # gen_apps_figure(data, solutions, apps, nb_nodes=21, nb_users=4000)
 
     # users = range(1000, 10001, 3000)
     # apps = [10, 30, 50]
@@ -166,4 +212,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    args = sys.argv[1:]
+    experiment = args[0] if args else 'exp_1'
+    if experiment in locals():
+        exp_func = locals()[experiment]
+        exp_func(args[1:])

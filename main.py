@@ -7,6 +7,7 @@ import path
 import genetic
 import greedy
 import minlp
+import cloud
 # import pprint
 
 
@@ -14,11 +15,18 @@ def exp_4(args=[]):
     random.seed()
     np.random.seed()
 
-    r_nodes = [9]
+    r_nodes = [9, 21]
     r_apps = range(10, 51, 10)
     r_users = range(1000, 10001, 3000)
     nb_runs = 30
-    solutions = {"greedy": greedy.solve_sp, "genetic": genetic.solve_sp, "minlp": minlp.solve_sp}
+    solutions = {"cloud": greedy.solve_sp, "greedy": greedy.solve_sp,
+                 "genetic": genetic.solve_sp, "minlp": minlp.solve_sp}
+
+    # r_nodes = [21]
+    # r_apps = range(10, 51, 10)
+    # r_users = [4000]
+    # nb_runs = 30
+    # solutions = {"minlp": minlp.solve_sp}
 
     results = []
     with open("output/result_exp_4.csv", "w") as csv_file:
@@ -48,8 +56,8 @@ def exp_4(args=[]):
                             if title == "minlp":
                                 if not result:
                                     result = [float('inf')] * 4
-                                values = [("minlp - relaxed", result[0]),
-                                          ("minlp - original", result[3])]
+                                values = [("milp", result[0]),
+                                          ("milp-minlp", result[3])]
                             else:
                                 values = [(title, result[0])]
 
@@ -117,9 +125,9 @@ def exp_2(args=[]):
     random.seed(1)
     np.random.seed(1)
 
-    nb_nodes = 21
-    # nb_nodes = 9
-    nb_apps = 20
+    # nb_nodes = 21
+    nb_nodes = 9
+    nb_apps = 10
     nb_users = 1000
     if len(args) >= 3:
         nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
@@ -135,17 +143,15 @@ def exp_2(args=[]):
     resources = nodes[0].keys()
     users = input.gen_rand_users(nb_nodes, apps_users)
 
+    cloud_solution = cloud.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    print("cloud", cloud_solution[0])
     greedy_solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
     print("greedy", greedy_solution[0])
     genetic_solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
     print("genetic", genetic_solution[0])
     minlp_solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    if minlp_solution:
-        print("minlp - relaxed", minlp_solution[0])
-        print("minlp - original", minlp_solution[3])
-    else:
-        print("minlp - relaxed", float('inf'))
-        print("minlp - original", float('inf'))
+    print("minlp - relaxed", minlp_solution[0])
+    print("minlp - original", minlp_solution[3])
 
 
 def exp_1(args=[]):

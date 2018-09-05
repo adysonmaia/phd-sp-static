@@ -247,6 +247,6 @@ def solve_sp(nodes,
              resources,
              net_delay,
              demand,
-             time_limit=0):
+             time_limit=300):
     model = MINLP(nodes, apps, users, resources, net_delay, demand, time_limit)
     return model.solve()
