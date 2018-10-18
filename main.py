@@ -5,10 +5,14 @@ import sys
 import input
 import path
 import genetic
+import genetic_lp
+import genetic_2
 import greedy
+import pso
 import minlp
 import cloud
-# import pprint
+import pprint
+import time
 
 
 def exp_4(args=[]):
@@ -21,12 +25,6 @@ def exp_4(args=[]):
     nb_runs = 30
     solutions = {"cloud": greedy.solve_sp, "greedy": greedy.solve_sp,
                  "genetic": genetic.solve_sp, "minlp": minlp.solve_sp}
-
-    # r_nodes = [21]
-    # r_apps = range(10, 51, 10)
-    # r_users = [4000]
-    # nb_runs = 30
-    # solutions = {"minlp": minlp.solve_sp}
 
     results = []
     with open("output/result_exp_4.csv", "w") as csv_file:
@@ -125,8 +123,8 @@ def exp_2(args=[]):
     random.seed(1)
     np.random.seed(1)
 
-    # nb_nodes = 21
-    nb_nodes = 9
+    nb_nodes = 21
+    # nb_nodes = 9
     nb_apps = 10
     nb_users = 1000
     if len(args) >= 3:
@@ -143,15 +141,45 @@ def exp_2(args=[]):
     resources = nodes[0].keys()
     users = input.gen_rand_users(nb_nodes, apps_users)
 
-    cloud_solution = cloud.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    print("cloud", cloud_solution[0])
-    greedy_solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    print("greedy", greedy_solution[0])
-    genetic_solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    print("genetic", genetic_solution[0])
-    minlp_solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    print("minlp - relaxed", minlp_solution[0])
-    print("minlp - original", minlp_solution[3])
+    start_time = time.time()
+    solution = cloud.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
+
+    # start_time = time.time()
+    # solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
+
+    # start_time = time.time()
+    # solution = genetic_lp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("genetic lp", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = genetic_2.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
+
+    # start_time = time.time()
+    # solution = pso.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    # elapsed_time = time.time() - start_time
+    # print("{} - {} - {}s".format("pso", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("milp", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("milp-minlp", solution[3], elapsed_time))
+
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(solution[1])
+    # pp.pprint(solution[2])
 
 
 def exp_1(args=[]):

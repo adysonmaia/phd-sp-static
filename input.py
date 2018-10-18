@@ -23,10 +23,10 @@ def gen_hex_map(nb_points):
     # https://www.redblobgames.com/grids/hexagons/#range
     delta_sqrt = math.sqrt(9 + 12*(nb_points - 1))
     if delta_sqrt > 3:
-        size = (3 + delta_sqrt) / 6.0
+        size = (delta_sqrt - 3) / 6.0
     else:
-        size = (3 - delta_sqrt) / 6.0
-    size = int(math.floor(size))
+        size = 0
+    size = int(round(size))
 
     points = []
     count = 0

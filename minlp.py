@@ -164,6 +164,12 @@ class MINLP:
                             for a in r_apps
                             for h in r_nodes)
 
+        # for a in r_apps:
+        #     for b in range(nb_nodes - 2):
+        #         for h in range(nb_nodes - 2):
+        #             if self.net_delay[a][b][h] > self.apps[a][DEADLINE]:
+        #                 mdl.add_constraint(dvar_distribution[a, b, h] == 0)
+
         # Objective
         mdl.minimize(dvar_e)
 
