@@ -12,7 +12,7 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class SP3_Chromosome(SP_Chromosome):
+class SP2_Chromosome(SP_Chromosome):
     def __init__(self,
                  nodes,
                  apps,
@@ -33,7 +33,7 @@ class SP3_Chromosome(SP_Chromosome):
                 nb_requests = int(math.ceil(self.users[a][b] * self.apps[a][REQUEST_RATE]))
                 self.requests += [(a, b)] * nb_requests
 
-        self.nb_genes = len(apps) * len(self.requests)
+        self.nb_genes = nb_apps * nb_nodes + len(self.requests)
 
     def gen_init_population(self):
         return []
@@ -74,7 +74,7 @@ class SP3_Chromosome(SP_Chromosome):
         r_requests.sort(key=lambda v: priority[v], reverse=True)
         for req in r_requests:
             a, b = self.requests[req]
-            nodes = selected_nodes[a][:]
+            nodes = list(selected_nodes[a])
             # nodes.sort(key=lambda h: self._decode_node_priority(individual, a, b, h, place, load))
             nodes.append(cloud)
             for h in nodes:
@@ -121,7 +121,7 @@ def solve_sp(nodes,
              elite_proportion=0.4,
              mutant_proportion=0.3):
 
-    chromossome = SP3_Chromosome(nodes, apps, users, resources, net_delay, demand)
+    chromossome = SP2_Chromosome(nodes, apps, users, resources, net_delay, demand)
     init_pop = chromossome.gen_init_population()
     genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
                                      chromossome.stopping_criteria,

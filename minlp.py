@@ -1,6 +1,7 @@
 from docplex.mp.model import Model
 from collections import namedtuple
 import math
+import sp
 
 # Constants
 INF = float("inf")
@@ -16,7 +17,7 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class MINLP:
+class MINLP(sp.Decoder):
     def __init__(self,
                  nodes,
                  apps,
@@ -26,12 +27,7 @@ class MINLP:
                  demand,
                  time_limit=0):
 
-        self.nodes = nodes
-        self.apps = apps
-        self.users = users
-        self.resources = resources
-        self.net_delay = net_delay
-        self.demand = demand
+        sp.Decoder.__init__(self, nodes, apps, users, resources, net_delay, demand)
         self.time_limit = time_limit
 
     def solve(self):
@@ -164,11 +160,11 @@ class MINLP:
                             for a in r_apps
                             for h in r_nodes)
 
-        # for a in r_apps:
-        #     for b in range(nb_nodes - 2):
-        #         for h in range(nb_nodes - 2):
-        #             if self.net_delay[a][b][h] > self.apps[a][DEADLINE]:
-        #                 mdl.add_constraint(dvar_distribution[a, b, h] == 0)
+        for a in r_apps:
+            for b in range(nb_nodes - 2):
+                for h in range(nb_nodes - 2):
+                    if self.net_delay[a][b][h] > self.apps[a][DEADLINE]:
+                        mdl.add_constraint(dvar_distribution[a, b, h] == 0)
 
         # Objective
         mdl.minimize(dvar_e)
@@ -179,72 +175,26 @@ class MINLP:
         if self.time_limit > 0:
             mdl.context.cplex_parameters.timelimit = self.time_limit
 
+        cloud = nb_nodes - 1
+        objective_value = INF
+        place = {(a, h): 0 if h != cloud else 1
+                 for a in r_apps
+                 for h in r_nodes}
+        distribution = {(a, b, h): 0 if h != cloud else requests[a][b]
+                        for a in r_apps
+                        for b in r_nodes
+                        for h in r_nodes}
+
         # Solving
-        if not mdl.solve():
-            if self.time_limit <= 0:
-                return INF, None, None, INF
+        if mdl.solve():
+            objective_value = mdl.objective_value
+            for a in r_apps:
+                for h in r_nodes:
+                    place[a, h] = int(dvar_place[a, h].solution_value)
+                    for b in r_nodes:
+                        distribution[a, b, h] = int(dvar_distribution[a, b, h].solution_value)
 
-            SV = namedtuple("SolutionValue", ["solution_value"])
-            OV = namedtuple("ObjectiveValue", ["objective_value"])
-            cloud = nb_nodes - 1
-            dvar_place = {(a, h): SV(0 if b != cloud else 1)
-                          for a in r_apps
-                          for h in r_nodes}
-            dvar_distribution = {(a, b, h): SV(0 if h != cloud else requests[a][b])
-                                 for a in r_apps
-                                 for b in r_nodes
-                                 for h in r_nodes}
-            mdl = OV(INF)
-        # else:
-        #     mdl.print_solution()
-
-        place = [[h for h in r_nodes if dvar_place[a, h].solution_value > 0]
-                 for a in r_apps]
-        distri = {(a, b, h):
-                  dvar_distribution[a, b, h].solution_value
-                  / float(requests[a][b])
-                  for a in r_apps
-                  for b in r_nodes
-                  for h in r_nodes
-                  if (dvar_distribution[a, b, h].solution_value > 0
-                      and requests[a][b] > 0)}
-        relaxed_value = mdl.objective_value
-        original_value = self._calc_original_qos_violation(dvar_place,
-                                                           dvar_distribution)
-        return relaxed_value, place, distri, original_value
-
-    def _calc_original_qos_violation(self, dvar_place, dvar_distribution):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
-
-        e = 0.0
-        for a in r_apps:
-            app = self.apps[a]
-            work_size = app[WORK_SIZE]
-            deadline = app[DEADLINE]
-            cpu_k1 = self.demand[a][CPU][K1]
-            cpu_k2 = self.demand[a][CPU][K2]
-
-            instances = [h for h in r_nodes if dvar_place[a, h].solution_value > 0]
-            bs = [b for b, nb_users in enumerate(self.users[a]) if nb_users > 0]
-
-            max_delay = 0.0
-            for h in instances:
-                node_load = sum([dvar_distribution[a, b, h].solution_value for b in bs])
-                proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
-                proc_delay = INF
-                if proc_delay_divisor > 0.0:
-                    proc_delay = app[WORK_SIZE] / proc_delay_divisor
-                for b in bs:
-                    if dvar_distribution[a, b, h].solution_value > 0:
-                        delay = self.net_delay[a][b][h] + proc_delay
-                        if delay > max_delay:
-                            max_delay = delay
-
-            violation = max_delay - deadline
-            if violation > 0.0 and violation > e:
-                e = violation
-        return e
+        return objective_value, place, distribution
 
 
 def solve_sp(nodes,
@@ -254,5 +204,12 @@ def solve_sp(nodes,
              net_delay,
              demand,
              time_limit=300):
-    model = MINLP(nodes, apps, users, resources, net_delay, demand, time_limit)
-    return model.solve()
+    solver = MINLP(nodes, apps, users, resources, net_delay, demand, time_limit)
+    result = list(solver.solve())
+
+    e_relaxed = result.pop(0)
+    e_original = solver.calc_qos_violation(*result)
+    place = solver.get_places(*result)
+    distribution = solver.get_distributions(*result)
+
+    return e_relaxed, place, distribution, e_original

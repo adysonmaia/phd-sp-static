@@ -26,7 +26,7 @@ def gen_hex_map(nb_points):
         size = (delta_sqrt - 3) / 6.0
     else:
         size = 0
-    size = int(round(size))
+    size = int(math.ceil(size))
 
     points = []
     count = 0

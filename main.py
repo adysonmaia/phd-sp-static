@@ -5,10 +5,10 @@ import sys
 import input
 import path
 import genetic
-import genetic_lp
+# import genetic_lp
 import genetic_2
 import greedy
-import pso
+# import pso
 import minlp
 import cloud
 import pprint
@@ -141,35 +141,29 @@ def exp_2(args=[]):
     resources = nodes[0].keys()
     users = input.gen_rand_users(nb_nodes, apps_users)
 
-    start_time = time.time()
-    solution = cloud.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
+    # input.print_net_graph(graphs[0])
+    # pp = pprint.PrettyPrinter(indent=2)
+    # pp.pprint(net_delay[0])
 
-    start_time = time.time()
-    solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
+    # start_time = time.time()
+    # solution = cloud.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
+
+    # start_time = time.time()
+    # solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
 
     # start_time = time.time()
     # solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
     # elapsed_time = round(time.time() - start_time, 2)
     # print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
 
-    # start_time = time.time()
-    # solution = genetic_lp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("genetic lp", solution[0], elapsed_time))
-
     start_time = time.time()
     solution = genetic_2.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
     elapsed_time = round(time.time() - start_time, 2)
     print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
-
-    # start_time = time.time()
-    # solution = pso.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # elapsed_time = time.time() - start_time
-    # print("{} - {} - {}s".format("pso", solution[0], elapsed_time))
 
     start_time = time.time()
     solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)

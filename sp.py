@@ -90,12 +90,16 @@ class Decoder():
             cpu_k1 = self.demand[a][CPU][K1]
             cpu_k2 = self.demand[a][CPU][K2]
 
-            instances = [h for h in r_nodes if place[a, h] > 0]
-            bs = [b for b, nb_users in enumerate(self.users[a]) if nb_users > 0]
+            # instances = [h for h in r_nodes if place[a, h] > 0]
+            # bs = [b for b, nb_users in enumerate(self.users[a]) if nb_users > 0]
+            instances = filter(lambda h: place[a, h] > 0, r_nodes)
+            bs = filter(lambda b: self.users[a][b] > 0, r_nodes)
 
             max_delay = 0.0
             for h in instances:
                 node_load = sum([load[a, b, h] for b in bs])
+                if node_load == 0.0:
+                    continue
                 proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
                 proc_delay = INF
                 if proc_delay_divisor > 0.0:

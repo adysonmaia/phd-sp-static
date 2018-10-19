@@ -33,7 +33,7 @@ class Cloud(Greedy):
                     for a in r_apps]
 
         cloud = nb_nodes - 1
-        place = {(a, h): 0 if b != cloud else 1
+        place = {(a, h): 0 if h != cloud else 1
                  for a in r_apps
                  for h in r_nodes}
         distribution = {(a, b, h): 0 if h != cloud else requests[a][b]
