@@ -58,7 +58,8 @@ class SP2_Chromosome(SP_Chromosome):
         selected_nodes = []
         for a in r_apps:
             start = a * nb_nodes
-            end = start + nb_nodes + 1
+            # end = start + nb_nodes + 1
+            end = start + nb_nodes
             priority = individual[start:end]
             nodes = r_nodes[:]
             nodes.sort(key=lambda v: priority[v], reverse=True)
@@ -68,7 +69,8 @@ class SP2_Chromosome(SP_Chromosome):
         capacity = {(h, r): 0 for h in r_nodes for r in self.resources}
 
         start = nb_apps * nb_nodes
-        end = start + nb_requests + 1
+        # end = start + nb_requests + 1
+        end = start + nb_requests
         priority = individual[start:end]
 
         r_requests.sort(key=lambda v: priority[v], reverse=True)
