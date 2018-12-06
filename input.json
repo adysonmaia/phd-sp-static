@@ -1,0 +1,45 @@
+{
+    "map": {
+        "format": "rectangle",
+        "distribution": ["uniform"]
+    },
+    "nodes": {
+        "bs": {
+            "CPU": 50.0,
+            "STORAGE": 1000.0
+        },
+        "core": {
+            "CPU": 50.0,
+            "STORAGE": 1000.0
+        }
+    },
+    "apps": [
+        {
+            "type": "embb",
+            "users": 0.2,
+            "deadline": [10, 50],
+            "request_rate": [0.02, 0.01],
+            "work_size": [1, 10],
+            "storage": [1, 50],
+            "net_delay": {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}
+        },
+        {
+            "type": "urllc",
+            "users": 0.1,
+            "deadline": [1, 10],
+            "request_rate": [0.02, 0.01],
+            "work_size": [1, 5],
+            "storage": [1, 10],
+            "net_delay": {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}
+        },
+        {
+            "type": "mmtc",
+            "users": 0.7,
+            "deadline": [50, 1000],
+            "request_rate": [0.001, 0.01],
+            "work_size": [1, 5],
+            "storage": [1, 10],
+            "net_delay": {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}
+        }
+    ]
+}

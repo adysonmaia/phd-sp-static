@@ -2,17 +2,10 @@ import csv
 import random
 import numpy as np
 import sys
-import input
-import path
-import genetic
-# import genetic_lp
-import genetic_2
-import greedy
-# import pso
-import minlp
-import cloud
 import pprint
 import time
+from util import input
+import algo
 
 
 def exp_4(args=[]):
@@ -23,8 +16,8 @@ def exp_4(args=[]):
     r_apps = range(10, 51, 10)
     r_users = range(1000, 10001, 3000)
     nb_runs = 30
-    solutions = {"cloud": greedy.solve_sp, "greedy": greedy.solve_sp,
-                 "genetic": genetic.solve_sp, "minlp": minlp.solve_sp}
+    solutions = {"cloud": algo.greedy.solve_sp, "greedy": algo.greedy.solve_sp,
+                 "genetic": algo.genetic.solve_sp, "minlp": algo.minlp.solve_sp}
 
     results = []
     with open("output/result_exp_4.csv", "w") as csv_file:
@@ -32,24 +25,16 @@ def exp_4(args=[]):
         writer = csv.DictWriter(csv_file, fieldnames=field_names)
         writer.writeheader()
 
+        config = input.Input("input.json")
+
         for nb_nodes in r_nodes:
             for nb_apps in r_apps:
                 for nb_users in r_users:
                     for run in range(nb_runs):
-                        apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
-                        apps_demand = [a["demand"] for a in apps]
-                        apps_link_delay = [a["delay"] for a in apps]
-                        apps_users = [a["users"] for a in apps]
-
-                        graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
-                        net_delay = [path.calc_net_delay(g) for g in graphs]
-                        nodes = input.gen_nodes_capacity(nb_nodes)
-                        resources = nodes[0].keys()
-                        users = input.gen_rand_users(nb_nodes, apps_users)
+                        parameters = config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
                         for title, funct in solutions.iteritems():
-                            result = funct(nodes, apps, users, resources,
-                                           net_delay, apps_demand)
+                            result = funct(*parameters)
                             values = None
                             if title == "minlp":
                                 if not result:
@@ -91,23 +76,14 @@ def exp_3(args=[]):
         writer.writeheader()
 
         for run in range(nb_runs):
-            apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
-            apps_demand = [a["demand"] for a in apps]
-            apps_link_delay = [a["delay"] for a in apps]
-            apps_users = [a["users"] for a in apps]
-
-            graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
-            net_delay = [path.calc_net_delay(g) for g in graphs]
-            nodes = input.gen_nodes_capacity(nb_nodes)
-            resources = nodes[0].keys()
-            users = input.gen_rand_users(nb_nodes, apps_users)
+            config = input.Input("input.json")
+            parameters = config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
             for gen in r_gen:
                 for pop in r_pop:
-                        result = genetic.solve_sp(nodes, apps, users, resources,
-                                                  net_delay, apps_demand,
-                                                  nb_generations=gen,
-                                                  population_size=pop)
+                        result = algo.genetic.solve_sp(*parameters,
+                                                       nb_generations=gen,
+                                                       population_size=pop)
                         obj_value = result[0]
                         row = {"nb_gens": gen,
                                "pop_size": pop,
@@ -130,46 +106,64 @@ def exp_2(args=[]):
     if len(args) >= 3:
         nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
 
-    apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
-    apps_demand = [a["demand"] for a in apps]
-    apps_link_delay = [a["delay"] for a in apps]
-    apps_users = [a["users"] for a in apps]
-
-    graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
-    net_delay = [path.calc_net_delay(g) for g in graphs]
-    nodes = input.gen_nodes_capacity(nb_nodes)
-    resources = nodes[0].keys()
-    users = input.gen_rand_users(nb_nodes, apps_users)
+    config = input.Input("input.json")
+    parameters = config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
     # input.print_net_graph(graphs[0])
     # pp = pprint.PrettyPrinter(indent=2)
     # pp.pprint(net_delay[0])
 
-    # start_time = time.time()
-    # solution = cloud.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
-
-    # start_time = time.time()
-    # solution = greedy.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
-
-    # start_time = time.time()
-    # solution = genetic.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
+    start_time = time.time()
+    solution = algo.cloud.solve_sp(*parameters)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
 
     start_time = time.time()
-    solution = genetic_2.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    solution = algo.greedy.solve_sp(*parameters)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = algo.greedy_2.solve_sp(*parameters)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("greedy 2", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = algo.greedy_2_2.solve_sp(*parameters)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("greedy 2.2", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = algo.genetic.solve_sp(*parameters)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
+
+    start_time = time.time()
+    solution = algo.genetic_2.solve_sp(*parameters)
     elapsed_time = round(time.time() - start_time, 2)
     print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
 
+    # start_time = time.time()
+    # solution = algo.genetic_lp.solve_sp(*parameters)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("genetic lp", solution[0], elapsed_time))
+
     start_time = time.time()
-    solution = minlp.solve_sp(nodes, apps, users, resources, net_delay, apps_demand)
+    solution = algo.minlp.solve_sp(*parameters)
     elapsed_time = round(time.time() - start_time, 2)
     print("{} - {} - {}s".format("milp", solution[0], elapsed_time))
     print("{} - {} - {}s".format("milp-minlp", solution[3], elapsed_time))
+
+    start_time = time.time()
+    solution = algo.minlp_2.solve_sp(*parameters)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("milp 2", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("milp-minlp 2", solution[3], elapsed_time))
+
+    # start_time = time.time()
+    # solution = algo.lp.solve_sp(*parameters)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("lp", solution[0], elapsed_time))
 
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(solution[1])
@@ -184,7 +178,7 @@ def exp_1(args=[]):
     r_apps = range(10, 51, 10)
     r_users = range(1000, 10001, 3000)
     nb_runs = 30
-    solutions = {"greedy": greedy.solve_sp, "genetic": genetic.solve_sp}
+    solutions = {"greedy": algo.greedy.solve_sp, "genetic": algo.genetic.solve_sp}
 
     results = []
     with open("output/result_exp_1.csv", "w") as csv_file:
@@ -192,24 +186,16 @@ def exp_1(args=[]):
         writer = csv.DictWriter(csv_file, fieldnames=field_names)
         writer.writeheader()
 
+        config = input.Input("input.json")
+
         for nb_nodes in r_nodes:
             for nb_apps in r_apps:
                 for nb_users in r_users:
                     for run in range(nb_runs):
-                        apps = input.gen_rand_apps(nb_apps, nb_nodes, nb_users)
-                        apps_demand = [a["demand"] for a in apps]
-                        apps_link_delay = [a["delay"] for a in apps]
-                        apps_users = [a["users"] for a in apps]
-
-                        graphs = input.gen_net_graphs(nb_nodes, apps_link_delay)
-                        net_delay = [path.calc_net_delay(g) for g in graphs]
-                        nodes = input.gen_nodes_capacity(nb_nodes)
-                        resources = nodes[0].keys()
-                        users = input.gen_rand_users(nb_nodes, apps_users)
+                        parameters = config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
                         for solution, funct in solutions.iteritems():
-                            result = funct(nodes, apps, users, resources,
-                                           net_delay, apps_demand)
+                            result = funct(*parameters)
                             obj_value = result[0]
                             row = {"nodes": nb_nodes,
                                    "apps": nb_apps,

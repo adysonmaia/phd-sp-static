@@ -1,0 +1,40 @@
+/*********************************************
+ * OPL 12.8.0.0 Data
+ * Author: Adyson M. Maia
+ * Creation Date: 30 juil. 2018 at 15:50:08
+ *********************************************/
+ 
+ nbNodes = 3;
+ nbApps = 3;
+ Resources = {"CPU", "STORAGE"};
+ 
+ nodeCapacity = [
+	#["CPU":50.0, "STORAGE":1000.0]#,
+	#["CPU":200.0, "STORAGE":10000.0]#,
+	#["CPU":infinity, "STORAGE":infinity]#
+];
+
+networkDelay = [
+	[ 0.0,  1.0,  11.0],
+	[ 1.0,  0.0,  10.0],
+	[11.0, 10.0,   0.0]
+];
+
+apps = [
+	#<deadline:15.37, maxInstances:2, requestRate:0.0155, workSize:8>#,
+	#<deadline:8.1, maxInstances:1, requestRate:0.0124, workSize:1>#,
+	#<deadline:473.12, maxInstances:1, requestRate:0.0013, workSize:3>#
+];
+
+resourceDemand = [
+	#["CPU":<9,6>, "STORAGE":<13,25>]#,
+	#["CPU":<2,0>, "STORAGE":<8,4>]#,
+	#["CPU":<4,0>, "STORAGE":<9,9>]#
+];
+
+users = [
+	[20000, 0, 0],
+	[10000, 0, 0],
+	[70000, 0, 0],
+];
+
