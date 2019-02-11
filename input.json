@@ -1,7 +1,7 @@
 {
     "map": {
         "format": "rectangle",
-        "distribution": ["uniform"]
+        "distribution": ["uniform", "blob", "circle", "moon"]
     },
     "nodes": {
         "bs": {
@@ -9,8 +9,8 @@
             "STORAGE": 1000.0
         },
         "core": {
-            "CPU": 50.0,
-            "STORAGE": 1000.0
+            "CPU": 200.0,
+            "STORAGE": 10000.0
         }
     },
     "apps": [

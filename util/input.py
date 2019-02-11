@@ -1,5 +1,5 @@
-import numpy as np
 import random
+import math
 import json
 import point
 import path
@@ -76,7 +76,7 @@ class Input:
                        "max_instances": max_instances,
                        "request_rate": request_rate,
                        "work_size": work_size,
-                       "users": users,
+                       "users": int(users),
                        "demand": {"CPU": (cpu_demand_1, cpu_demand_2),
                                   "STORAGE": (storage_demand_1, storage_demand_2)},
                        "net_delay": net_delay}
@@ -86,7 +86,15 @@ class Input:
         return apps
 
     def _gen_net_graphs(self):
-        bs = point.gen_hex_map(self.nb_nodes)
+        map_data = self.input_data["map"]
+        nb_bs = self.nb_nodes - 2
+        if map_data["format"] == "rectangle":
+            rows = int(math.floor(math.sqrt(nb_bs)))
+            columns = rows
+            bs = point.gen_rect_map(rows, columns)
+        else:
+            bs = point.gen_hex_map(nb_bs)
+
         e_bs = list(enumerate(bs))
         bs_indexes = {b: i for i, b in e_bs}
         core_index = self.nb_nodes - 2
@@ -126,35 +134,87 @@ class Input:
                         graph[a][b_index][n_index] = delay
                         graph[a][n_index][b_index] = delay
 
+        self.hex_map = bs
         self.net_graphs = graph
         return graph
 
     def _gen_nodes_capacity(self):
+        def _get_capacity(capacity):
+            result = {}
+            for key, value in capacity.items():
+                if isinstance(value, list) or isinstance(value, tuple):
+                    value = round(random.uniform(*value), 4)
+                result[key] = value
+            return result
+
         nodes_data = self.input_data["nodes"]
         bs_capacity = nodes_data["bs"]
         core_capacity = nodes_data["core"]
 
         nb_bs = self.nb_nodes - 2
-        capacities = [bs_capacity for b in range(nb_bs)]
-        capacities.append(core_capacity)
+        capacities = [_get_capacity(bs_capacity) for _ in range(nb_bs)]
+        capacities.append(_get_capacity(core_capacity))
         resources = core_capacity.keys()
         cloud_capacity = {r: INF for r in resources}
         capacities.append(cloud_capacity)
+
+        # nb_bs = self.nb_nodes - 2
+        # capacities = [bs_capacity for b in range(nb_bs)]
+        # capacities.append(core_capacity)
+        # resources = core_capacity.keys()
+        # cloud_capacity = {r: INF for r in resources}
+        # capacities.append(cloud_capacity)
 
         self.nodes = capacities
         return capacities
 
     def _gen_rand_users(self):
-        r_apps = range(self.nb_apps)
         nb_bs = self.nb_nodes - 2
+        map_data = self.input_data["map"]
+        user_distributions = map_data["distribution"]
+
+        if map_data["format"] == "rectangle":
+            bound_box = point.calc_rect_bound_box(nb_bs)
+        else:
+            bound_box = point.calc_hex_bound_box(nb_bs)
+
+        r_apps = range(self.nb_apps)
         users = [[0 for _ in range(self.nb_nodes)] for _ in r_apps]
+        nodes = list(enumerate(self.hex_map))
         for a in r_apps:
             nb_users = self.apps[a]["users"]
-            nodes = np.random.randint(nb_bs, size=int(nb_users))
-            for n in nodes:
-                users[a][n] += 1
+            distribution = random.choice(user_distributions)
+            if distribution == "blob":
+                points = point.gen_2d_points_blob(nb_users, bound_box)
+            elif distribution == "circle":
+                points = point.gen_2d_points_circle(nb_users, bound_box)
+            elif distribution == "moon":
+                points = point.gen_2d_points_moon(nb_users, bound_box)
+            else:  # uniform
+                points = point.gen_2d_points_uniform(nb_users, bound_box)
+
+            for p in points:
+                # print("[{}, {}],".format(p.x, p.y))
+                nodes.sort(key=lambda (index, node): node.get_distance(p.to_hex()))
+                index, node = nodes[0]
+                users[a][index] += 1
+
         self.users = users
         return users
+
+    # def _gen_rand_users(self):
+    #     r_apps = range(self.nb_apps)
+    #     nb_bs = self.nb_nodes - 2
+    #     users = [[0 for _ in range(self.nb_nodes)] for _ in r_apps]
+    #     for a in r_apps:
+    #         nb_users = self.apps[a]["users"]
+    #         nodes = np.random.randint(nb_bs, size=int(nb_users))
+    #         for n in nodes:
+    #             users[a][n] += 1
+    #
+    #     self.users = users
+    #     print(self.users)
+    #     return users
 
 
 def print_net_graph(graph):
