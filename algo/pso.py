@@ -120,15 +120,9 @@ class PSO():
 
 
 class PSO_Decoder(sp.Decoder):
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
+    def __init__(self, input):
 
-        sp.Decoder.__init__(self, nodes, apps, users, resources, net_delay, demand)
+        sp.Decoder.__init__(self, input)
 
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
@@ -141,7 +135,7 @@ class PSO_Decoder(sp.Decoder):
                 nb_requests = int(math.ceil(self.users[a][b] * self.apps[a][sp.REQUEST_RATE]))
                 self.requests += ([(a, b)] * nb_requests)
 
-        self.nb_dimensions = len(apps) * len(self.requests)
+        self.nb_dimensions = len(self.apps) * len(self.requests)
 
     def stopping_criteria(self, best_coding, best_cost):
         print("best: {}".format(best_cost))
@@ -223,16 +217,8 @@ class PSO_Decoder(sp.Decoder):
         return delay + load[a, b, h] / max_load
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand,
-             nb_particles=100,
-             max_iteration=100):
-
-    decoder = PSO_Decoder(nodes, apps, users, resources, net_delay, demand)
+def solve_sp(input, nb_particles=100, max_iteration=100):
+    decoder = PSO_Decoder(input)
     pso = PSO(decoder.fitness, decoder.nb_dimensions, nb_particles, max_iteration,
               decoder.stopping_criteria)
     position, cost = pso.solve()

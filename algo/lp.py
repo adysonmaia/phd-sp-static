@@ -18,16 +18,9 @@ WORK_SIZE = "work_size"
 
 
 class LP(sp.Decoder):
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand,
-                 time_limit=0):
+    def __init__(self, input, time_limit=0):
 
-        sp.Decoder.__init__(self, nodes, apps, users, resources, net_delay, demand)
+        sp.Decoder.__init__(self, input)
         self.time_limit = time_limit
 
     def solve(self):
@@ -200,14 +193,8 @@ class LP(sp.Decoder):
         return objective_value, place, distribution
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand,
-             time_limit=300):
-    solver = LP(nodes, apps, users, resources, net_delay, demand, time_limit)
+def solve_sp(input, time_limit=300):
+    solver = LP(input, time_limit)
     result = list(solver.solve())
 
     e_relaxed = result.pop(0)

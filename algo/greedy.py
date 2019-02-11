@@ -13,15 +13,8 @@ WORK_SIZE = "work_size"
 
 class Greedy(sp.Decoder):
 
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
-
-        sp.Decoder.__init__(self, nodes, apps, users, resources, net_delay, demand)
+    def __init__(self, input):
+        sp.Decoder.__init__(self, input)
 
     def solve(self):
         nb_apps = len(self.apps)
@@ -79,14 +72,9 @@ class Greedy(sp.Decoder):
         return self._decode_local_search(place, load)
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand):
+def solve_sp(input):
 
-    g = Greedy(nodes, apps, users, resources, net_delay, demand)
+    g = Greedy(input)
     result = g.solve()
 
     e = g.calc_qos_violation(*result)

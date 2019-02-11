@@ -14,14 +14,8 @@ WORK_SIZE = "work_size"
 
 
 class SP3_Chromosome(SP_Chromosome):
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
-        SP_Chromosome.__init__(self, nodes, apps, users, resources, net_delay, demand)
+    def __init__(self, input):
+        SP_Chromosome.__init__(self, input)
 
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
@@ -134,18 +128,13 @@ class SP3_Chromosome(SP_Chromosome):
     #     return delay + load[a, b, h] / max_load
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand,
+def solve_sp(input,
              nb_generations=200,
              population_size=100,
              elite_proportion=0.4,
              mutant_proportion=0.3):
 
-    chromossome = SP3_Chromosome(nodes, apps, users, resources, net_delay, demand)
+    chromossome = SP3_Chromosome(input)
     init_pop = chromossome.gen_init_population()
     genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
                                      chromossome.stopping_criteria,

@@ -12,20 +12,15 @@ WORK_SIZE = "work_size"
 
 
 class Decoder():
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
+    def __init__(self, input):
 
-        self.nodes = nodes
-        self.apps = apps
-        self.users = users
-        self.resources = resources
-        self.net_delay = net_delay
-        self.demand = demand
+        self.input = input
+        self.nodes = input.nodes
+        self.apps = input.apps
+        self.users = input.users
+        self.resources = input.resources
+        self.net_delay = input.net_delay
+        self.demand = input.apps_demand
 
     def fitness(self, coding):
         data_decoded = self.decode(coding)

@@ -134,7 +134,7 @@ class Input:
                         graph[a][b_index][n_index] = delay
                         graph[a][n_index][b_index] = delay
 
-        self.hex_map = bs
+        self.bs_map = bs
         self.net_graphs = graph
         return graph
 
@@ -180,7 +180,7 @@ class Input:
 
         r_apps = range(self.nb_apps)
         users = [[0 for _ in range(self.nb_nodes)] for _ in r_apps]
-        nodes = list(enumerate(self.hex_map))
+        nodes = list(enumerate(self.bs_map))
         for a in r_apps:
             nb_users = self.apps[a]["users"]
             distribution = random.choice(user_distributions)

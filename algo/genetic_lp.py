@@ -17,15 +17,9 @@ WORK_SIZE = "work_size"
 
 
 class LP_Chromosome(SP_Chromosome):
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
-        SP_Chromosome.__init__(self, nodes, apps, users, resources, net_delay, demand)
-        self.nb_genes = len(apps) * len(nodes)
+    def __init__(self, input):
+        SP_Chromosome.__init__(self, input)
+        self.nb_genes = len(self.apps) * len(self.nodes)
 
     def gen_init_population(self):
         return []
@@ -180,18 +174,13 @@ class LP_Chromosome(SP_Chromosome):
         return SP_Chromosome._decode_local_search(self, place, load)
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand,
+def solve_sp(input,
              nb_generations=10,
              population_size=10,
              elite_proportion=0.4,
              mutant_proportion=0.3):
 
-    chromossome = LP_Chromosome(nodes, apps, users, resources, net_delay, demand)
+    chromossome = LP_Chromosome(input)
     init_pop = chromossome.gen_init_population()
     genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
                                      chromossome.stopping_criteria,

@@ -13,14 +13,8 @@ WORK_SIZE = "work_size"
 
 class Cloud(Greedy):
 
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
-        Greedy.__init__(self, nodes, apps, users, resources, net_delay, demand)
+    def __init__(self, input):
+        Greedy.__init__(self, input)
 
     def solve(self):
         nb_nodes = len(self.nodes)
@@ -44,14 +38,8 @@ class Cloud(Greedy):
         return place, distribution
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand):
-
-    solver = Cloud(nodes, apps, users, resources, net_delay, demand)
+def solve_sp(input):
+    solver = Cloud(input)
     result = solver.solve()
 
     e = solver.calc_qos_violation(*result)

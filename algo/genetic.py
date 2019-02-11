@@ -148,16 +148,10 @@ class BiasedRandomKeyGenetic:
 
 class SP_Chromosome(sp.Decoder):
 
-    def __init__(self,
-                 nodes,
-                 apps,
-                 users,
-                 resources,
-                 net_delay,
-                 demand):
+    def __init__(self, input):
 
-        sp.Decoder.__init__(self, nodes, apps, users, resources, net_delay, demand)
-        self.nb_genes = len(apps) * (2 * len(nodes) + 1)
+        sp.Decoder.__init__(self, input)
+        self.nb_genes = len(self.apps) * (2 * len(self.nodes) + 1)
 
     def gen_init_population(self):
         nb_apps = len(self.apps)
@@ -261,18 +255,13 @@ class SP_Chromosome(sp.Decoder):
         return weight * value + (1.0 - weight) * delay
 
 
-def solve_sp(nodes,
-             apps,
-             users,
-             resources,
-             net_delay,
-             demand,
+def solve_sp(input,
              nb_generations=200,
              population_size=100,
              elite_proportion=0.4,
              mutant_proportion=0.3):
 
-    chromossome = SP_Chromosome(nodes, apps, users, resources, net_delay, demand)
+    chromossome = SP_Chromosome(input)
     init_pop = chromossome.gen_init_population()
     genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
                                      chromossome.stopping_criteria,
