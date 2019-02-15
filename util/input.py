@@ -181,6 +181,7 @@ class Input:
         r_apps = range(self.nb_apps)
         users = [[0 for _ in range(self.nb_nodes)] for _ in r_apps]
         nodes = list(enumerate(self.bs_map))
+        points = []
         for a in r_apps:
             nb_users = self.apps[a]["users"]
             distribution = random.choice(user_distributions)
@@ -200,6 +201,7 @@ class Input:
                 users[a][index] += 1
 
         self.users = users
+        self.users_map = points
         return users
 
     # def _gen_rand_users(self):

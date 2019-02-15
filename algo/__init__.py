@@ -7,3 +7,4 @@ from . import greedy_2_2
 from . import minlp
 from . import minlp_2
 from . import sp
+from . import cluster

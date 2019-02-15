@@ -126,3 +126,38 @@ class Decoder():
         r_nodes = range(len(self.nodes))
 
         return [[h for h in r_nodes if place[a, h] > 0] for a in r_apps]
+
+    def check_valid_solution(self, place, load):
+        r_apps = range(len(self.apps))
+        r_nodes = range(len(self.nodes))
+
+        for a in r_apps:
+            app = self.apps[a]
+            users = self.users[a]
+
+            nb_instances = sum([place[a, h] for h in r_nodes])
+            if nb_instances > app[MAX_INSTANCES] or nb_instances == 0:
+                return False
+            for b in r_nodes:
+                requests = int(math.ceil(users[b] * app[REQUEST_RATE]))
+                total_load = int(sum([load[a, b, h] for h in r_nodes]))
+                if requests != total_load:
+                    return False
+                for h in r_nodes:
+                    if load[a, b, h] > 0 and not place[a, h]:
+                        return False
+
+        for h in r_nodes:
+            for r in self.resources:
+                demand = 0
+                for a in r_apps:
+                    k1 = self.demand[a][r][K1]
+                    k2 = self.demand[a][r][K2]
+                    node_load = int(sum([load[a, b, h] for b in r_nodes]))
+                    demand += float(place[a, h] * (node_load * k1 + k2))
+                    if node_load > 0 and not place[a, h]:
+                        return False
+                if demand > self.nodes[h][r]:
+                    return False
+
+        return True

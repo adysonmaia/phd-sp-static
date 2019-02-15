@@ -196,8 +196,8 @@ class Greedy_2(sp.Decoder):
         return result
 
 
-def solve_sp(input, time_limit=900):
-    solver = Greedy_2(input)
+def solve_sp(input, time_limit=600):
+    solver = Greedy_2(input, time_limit)
     result = list(solver.solve())
 
     e = solver.calc_qos_violation(*result)

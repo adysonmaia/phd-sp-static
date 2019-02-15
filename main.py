@@ -31,10 +31,10 @@ def exp_1(args=[]):
             for nb_apps in r_apps:
                 for nb_users in r_users:
                     for run in range(nb_runs):
-                        parameters = config.gen_rand_data(nb_nodes, nb_apps, nb_users)
+                        config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
                         for title, funct in solutions.iteritems():
-                            result = funct(*parameters)
+                            result = funct(config)
                             values = None
                             if title == "minlp":
                                 if not result:
@@ -67,54 +67,59 @@ def exp_2(args=[]):
         nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
 
     config = input.Input("input.json")
-    parameters = config.gen_rand_data(nb_nodes, nb_apps, nb_users)
+    config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
     start_time = time.time()
     solution = algo.cloud.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
     print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
 
-    start_time = time.time()
-    solution = algo.greedy.solve_sp(config)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
+    # start_time = time.time()
+    # solution = algo.greedy.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
+
+    # start_time = time.time()
+    # solution = algo.greedy_2.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("greedy 2", solution[0], elapsed_time))
+
+    # start_time = time.time()
+    # solution = algo.greedy_2_2.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("greedy 2.2", solution[0], elapsed_time))
 
     start_time = time.time()
-    solution = algo.greedy_2.solve_sp(config)
+    solution = algo.cluster.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy 2", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("cluster", solution[0], elapsed_time))
 
-    start_time = time.time()
-    solution = algo.greedy_2_2.solve_sp(config)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy 2.2", solution[0], elapsed_time))
+    # start_time = time.time()
+    # solution = algo.genetic.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
 
-    start_time = time.time()
-    solution = algo.genetic.solve_sp(config)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
-
-    start_time = time.time()
-    solution = algo.genetic_2.solve_sp(*parameters)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
+    # start_time = time.time()
+    # solution = algo.genetic_2.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
 
     # start_time = time.time()
     # solution = algo.genetic_lp.solve_sp(config)
     # elapsed_time = round(time.time() - start_time, 2)
     # print("{} - {} - {}s".format("genetic lp", solution[0], elapsed_time))
 
-    start_time = time.time()
-    solution = algo.minlp.solve_sp(config)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("milp", solution[0], elapsed_time))
-    print("{} - {} - {}s".format("milp-minlp", solution[3], elapsed_time))
+    # start_time = time.time()
+    # solution = algo.minlp.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("milp", solution[0], elapsed_time))
+    # print("{} - {} - {}s".format("milp-minlp", solution[3], elapsed_time))
 
-    start_time = time.time()
-    solution = algo.minlp_2.solve_sp(config)
-    elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("milp 2", solution[0], elapsed_time))
-    print("{} - {} - {}s".format("milp-minlp 2", solution[3], elapsed_time))
+    # start_time = time.time()
+    # solution = algo.minlp_2.solve_sp(config)
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("{} - {} - {}s".format("milp 2", solution[0], elapsed_time))
+    # print("{} - {} - {}s".format("milp-minlp 2", solution[3], elapsed_time))
 
     # start_time = time.time()
     # solution = algo.lp.solve_sp(config)

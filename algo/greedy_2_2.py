@@ -173,7 +173,7 @@ class Greedy_2_2(sp.Decoder):
         return result
 
 
-def solve_sp(input, time_limit=900):
+def solve_sp(input, time_limit=600):
     solver = Greedy_2_2(input, time_limit)
     result = list(solver.solve())
 

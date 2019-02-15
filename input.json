@@ -5,8 +5,8 @@
     },
     "nodes": {
         "bs": {
-            "CPU": 50.0,
-            "STORAGE": 1000.0
+            "CPU": [50.0, 100.0],
+            "STORAGE": [1000.0, 2000.0]
         },
         "core": {
             "CPU": 200.0,
@@ -21,7 +21,7 @@
             "request_rate": [0.02, 0.01],
             "work_size": [1, 10],
             "storage": [1, 50],
-            "net_delay": {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}
+            "net_delay": {"bs_bs": [1, 5], "bs_core": [1, 5], "core_cloud": 10}
         },
         {
             "type": "urllc",
@@ -30,7 +30,7 @@
             "request_rate": [0.02, 0.01],
             "work_size": [1, 5],
             "storage": [1, 10],
-            "net_delay": {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}
+            "net_delay": {"bs_bs": [1, 5], "bs_core": [1, 5], "core_cloud": 10}
         },
         {
             "type": "mmtc",
@@ -39,7 +39,7 @@
             "request_rate": [0.001, 0.01],
             "work_size": [1, 5],
             "storage": [1, 10],
-            "net_delay": {"bs_bs": 1, "bs_core": 1, "core_cloud": 10}
+            "net_delay": {"bs_bs": [1, 5], "bs_core": [1, 5], "core_cloud": 10}
         }
     ]
 }
