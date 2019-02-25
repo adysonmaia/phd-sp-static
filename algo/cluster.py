@@ -1,12 +1,13 @@
 import copy
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 import math
 import sp
 from minlp import MINLP
 
 # Constants
 INF = float("inf")
-MAX_CLUSTERS = 4
+MAX_CLUSTERS = 10
 QUEUE_MIN_DIFF = 0.00001
 E_MAX = 1000.0
 K1 = 0
@@ -72,11 +73,25 @@ class Cluster(sp.Decoder):
             point = self.bs_map[bs_index].to_pixel()
             nb_users = self.users[app_index][bs_index]
             if nb_users > 0:
-                features.append([point.x, point.y, nb_users])
+                # features.append([point.x, point.y, nb_users])
+                features.append([point.x, point.y])
                 features_map[count] = bs_index
                 count += 1
 
-        nb_clusters = min(MAX_CLUSTERS, len(features), self.apps[app_index][MAX_INSTANCES])
+        max_nb_clusters = min(MAX_CLUSTERS, len(features) - 1, self.apps[app_index][MAX_INSTANCES])
+        nb_clusters = 1
+        max_score = -1
+        if max_nb_clusters > 1:
+            for k in range(2, max_nb_clusters + 1):
+                kmeans = KMeans(n_clusters=k)
+                kmeans.fit(features)
+                score = silhouette_score(features, kmeans.labels_)
+                if score > max_score:
+                    max_score = score
+                    nb_clusters = k
+
+        # nb_clusters = min(4, len(features), self.apps[app_index][MAX_INSTANCES])
+
         kmeans = KMeans(n_clusters=nb_clusters)
         kmeans.fit(features)
         labels = list(kmeans.labels_)
@@ -145,8 +160,7 @@ class Cluster(sp.Decoder):
     def _solve_cluster(self, app_index, cluster, capacities, max_instances):
         cluster_input = self._get_cluster_input(app_index, cluster, capacities, max_instances)
 
-        time_limit = 300
-        solver = MINLP(cluster_input, time_limit)
+        solver = MINLP(cluster_input, self.time_limit)
         result = list(solver.solve())
         result.pop(0)
         return self._get_cluster_output(result, app_index, cluster)

@@ -159,6 +159,14 @@ class MINLP(sp.Decoder):
         #             if self.net_delay[a][b][h] > self.apps[a][DEADLINE]:
         #                 mdl.add_constraint(dvar_distribution[a, b, h] == 0)
 
+        # for a in r_apps:
+        #     for h in range(nb_nodes - 2):
+        #         if self.users[a][h] == 0:
+        #             mdl.add_constraint(dvar_place[a, h] == 0)
+        #             for b in range(nb_nodes - 2):
+        #                 mdl.add_constraint(dvar_distribution[a, b, h] == 0)
+        #                 mdl.add_constraint(dvar_flow_exists[a, b, h] == 0)
+
         # Objective
         mdl.minimize(dvar_e)
 

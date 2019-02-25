@@ -105,9 +105,9 @@ def exp_2(args=[]):
     # print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
 
     # start_time = time.time()
-    # solution = algo.genetic_lp.solve_sp(config)
+    # solution = algo.genetic_mo.solve_sp(config)
     # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("genetic lp", solution[0], elapsed_time))
+    # print("{} - {} - {}s".format("nsga-ii", solution[0], elapsed_time))
 
     # start_time = time.time()
     # solution = algo.minlp.solve_sp(config)

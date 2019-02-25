@@ -1,10 +1,6 @@
-import random
 import math
-import time
-import sp
-# from pathos.threading import ThreadPool
-from pathos.multiprocessing import ProcessPool
-# from pool import ThreadPool
+from sp import Decoder
+from brkga import Chromosome, BRKGA
 
 INF = float("inf")
 POOL_SIZE = 0
@@ -17,140 +13,10 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class BiasedRandomKeyGenetic:
-
-    def __init__(self,
-                 nb_genes,
-                 fitness_func,
-                 stopping_func=None,
-                 population_size=100,
-                 nb_generations=100,
-                 elite_proportion=0.5,
-                 mutant_proportion=0.1,
-                 initial_population=[],
-                 pool_size=0):
-
-        self.nb_genes = nb_genes
-        self.fitness = fitness_func
-        self.stopping_criteria = stopping_func
-        self.pop_size = population_size
-        self.nb_generations = nb_generations
-        self.elite_proportion = elite_proportion
-        self.mutant_proportion = mutant_proportion
-        self._elite_size = int(round(self.elite_proportion * self.pop_size))
-        self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
-        self.initial_population = initial_population
-
-        if pool_size > 0:
-            self._pool = ProcessPool(pool_size)
-        else:
-            self._pool = None
-
-    def _gen_rand_individual(self):
-        return [random.random() for g in range(self.nb_genes)]
-
-    # def _crossover(self, indiv_1, indiv_2, prob_1, prob_2):
-    #     if prob_1 < prob_2:
-    #         indiv_1, indiv_2 = indiv_2, indiv_1
-    #         prob_1, prob_2 = prob_2, prob_1
-    #
-    #     offspring_1 = indiv_1[:self.nb_genes]
-    #     offspring_2 = indiv_2[:self.nb_genes]
-    #
-    #     for g in range(self.nb_genes):
-    #         if random.random() < prob_1:
-    #             offspring_1[g] = indiv_2[g]
-    #         else:
-    #             offspring_2[g] = indiv_1[g]
-    #
-    #     return [offspring_1, offspring_2]
-
-    def _crossover(self, indiv_1, indiv_2, prob_1, prob_2):
-        if prob_1 < prob_2:
-            indiv_1, indiv_2 = indiv_2, indiv_1
-            prob_1, prob_2 = prob_2, prob_1
-
-        offspring_1 = indiv_1[:self.nb_genes]
-
-        for g in range(self.nb_genes):
-            if random.random() < prob_1:
-                offspring_1[g] = indiv_2[g]
-
-        return [offspring_1]
-
-    def _set_fitness(self, individual):
-        if len(individual) == self.nb_genes:
-            value = self.fitness(individual)
-            individual.append(value)
-        return individual
-
-    def _classify_population(self, population):
-        map_func = map
-        if self._pool:
-            map_func = self._pool.map
-
-        start_time = time.time()
-        population = map_func(self._set_fitness, population)
-        elapsed_time = time.time() - start_time
-        # print("time: {}".format(elapsed_time))
-
-        population.sort(key=lambda indiv: indiv[self.nb_genes])
-        return population
-
-    def _gen_first_population(self):
-        pop = self.initial_population[:]
-
-        rand_size = self.pop_size - len(pop)
-        if rand_size > 0:
-            pop += [self._gen_rand_individual()
-                    for i in range(rand_size)]
-
-        return self._classify_population(pop)
-
-    def _gen_next_population(self, prev_ranked_pop):
-        next_population = []
-
-        elite = prev_ranked_pop[:self._elite_size]
-        next_population += elite
-
-        mutants = [self._gen_rand_individual()
-                   for i in range(self._mutant_size)]
-        next_population += mutants
-
-        non_elite = prev_ranked_pop[self._elite_size:]
-        non_elite_size = len(non_elite)
-        cross_size = self.pop_size - self._elite_size - self._mutant_size
-        for i in range(cross_size):
-            indiv_1 = random.choice(elite)
-            indiv_2 = random.choice(non_elite)
-            offspring = self._crossover(indiv_1, indiv_2,
-                                        self._elite_size / float(self.pop_size),
-                                        non_elite_size / float(self.pop_size))
-            next_population += offspring
-
-        next_population = self._classify_population(next_population)
-        return next_population[:self.pop_size]
-
-    def solve(self):
-        self._elite_size = int(round(self.elite_proportion * self.pop_size))
-        self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
-        pop = self._gen_first_population()
-        try:
-            for i in range(self.nb_generations):
-                if self.stopping_criteria and self.stopping_criteria(pop):
-                    break
-                pop = self._gen_next_population(pop)
-        except KeyboardInterrupt:
-            raise
-        finally:
-            return pop
-
-
-class SP_Chromosome(sp.Decoder):
-
+class SP_Chromosome(Chromosome, Decoder):
     def __init__(self, input):
-
-        sp.Decoder.__init__(self, input)
+        Chromosome.__init__(self)
+        Decoder.__init__(self, input)
         self.nb_genes = len(self.apps) * (2 * len(self.nodes) + 1)
 
     def gen_init_population(self):
@@ -262,15 +128,12 @@ def solve_sp(input,
              mutant_proportion=0.3):
 
     chromossome = SP_Chromosome(input)
-    init_pop = chromossome.gen_init_population()
-    genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
-                                     chromossome.stopping_criteria,
-                                     nb_generations=nb_generations,
-                                     population_size=population_size,
-                                     elite_proportion=elite_proportion,
-                                     mutant_proportion=mutant_proportion,
-                                     initial_population=init_pop,
-                                     pool_size=POOL_SIZE)
+    genetic = BRKGA(chromossome,
+                    nb_generations=nb_generations,
+                    population_size=population_size,
+                    elite_proportion=elite_proportion,
+                    mutant_proportion=mutant_proportion,
+                    pool_size=POOL_SIZE)
 
     population = genetic.solve()
 

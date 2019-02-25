@@ -1,6 +1,6 @@
 import math
-import time
-from genetic import BiasedRandomKeyGenetic, SP_Chromosome
+from genetic import SP_Chromosome
+from brkga import BRKGA
 from docplex.mp.model import Model
 
 INF = float("inf")
@@ -181,15 +181,12 @@ def solve_sp(input,
              mutant_proportion=0.3):
 
     chromossome = LP_Chromosome(input)
-    init_pop = chromossome.gen_init_population()
-    genetic = BiasedRandomKeyGenetic(chromossome.nb_genes, chromossome.fitness,
-                                     chromossome.stopping_criteria,
-                                     nb_generations=nb_generations,
-                                     population_size=population_size,
-                                     elite_proportion=elite_proportion,
-                                     mutant_proportion=mutant_proportion,
-                                     initial_population=init_pop,
-                                     pool_size=POOL_SIZE)
+    genetic = BRKGA(chromossome,
+                    nb_generations=nb_generations,
+                    population_size=population_size,
+                    elite_proportion=elite_proportion,
+                    mutant_proportion=mutant_proportion,
+                    pool_size=POOL_SIZE)
 
     population = genetic.solve()
 

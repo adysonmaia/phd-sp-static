@@ -1,6 +1,7 @@
 from . import cloud
 from . import genetic
 from . import genetic_2
+from . import genetic_mo
 from . import greedy
 from . import greedy_2
 from . import greedy_2_2

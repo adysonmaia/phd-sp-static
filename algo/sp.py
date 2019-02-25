@@ -127,7 +127,7 @@ class Decoder():
 
         return [[h for h in r_nodes if place[a, h] > 0] for a in r_apps]
 
-    def check_valid_solution(self, place, load):
+    def is_valid_solution(self, place, load):
         r_apps = range(len(self.apps))
         r_nodes = range(len(self.nodes))
 
