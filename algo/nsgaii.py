@@ -1,4 +1,4 @@
-from brkga import BRKGA, Chromosome
+from algo.brkga import BRKGA, Chromosome
 
 INF = float("inf")
 

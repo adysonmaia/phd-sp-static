@@ -39,9 +39,7 @@ class LP_Chromosome(SP_Chromosome):
             start = a * nb_nodes
             end = start + nb_nodes + 1
             priority = individual[start:end]
-            nodes_priority = r_nodes[:]
-            # nodes_priority.sort(key=lambda h: priority[h] if h != cloud else INF,
-            #                     reverse=True)
+            nodes_priority = list(r_nodes)
             nodes_priority.sort(key=lambda h: priority[h], reverse=True)
             max_nodes = min(nb_nodes, self.apps[a][MAX_INSTANCES])
             nodes_selected = nodes_priority[:max_nodes]

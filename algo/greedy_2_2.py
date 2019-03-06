@@ -36,9 +36,9 @@ class Greedy_2_2(sp.Decoder):
                         for b in r_nodes
                         for h in r_nodes}
 
-        r_apps.sort(key=lambda a: self.apps[a][DEADLINE])
+        s_apps = sorted(r_apps, key=lambda a: self.apps[a][DEADLINE])
         current_capacity = copy.deepcopy(self.nodes)
-        for app_index in r_apps:
+        for app_index in s_apps:
             result = self._solve_app(app_index, current_capacity)
             for h in r_nodes:
                 place[app_index, h] = result[0][h]

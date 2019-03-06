@@ -29,10 +29,11 @@ class SP_Chromosome(Chromosome, Decoder):
 
         count = 0
         total = float(nb_apps * nb_nodes)
-        r_apps.sort(key=lambda a: self.apps[a][DEADLINE])
-        for a in r_apps:
-            r_nodes.sort(key=lambda b: self.users[a][b], reverse=True)
-            for b in r_nodes:
+        s_apps = sorted(r_apps, key=lambda a: self.apps[a][DEADLINE])
+        for a in s_apps:
+            s_nodes = sorted(r_nodes, key=lambda b: self.users[a][b],
+                             reverse=True)
+            for b in s_nodes:
                 indiv[a*nb_nodes + b] = (total - count) / total
                 count += 1
 
@@ -76,7 +77,7 @@ class SP_Chromosome(Chromosome, Decoder):
             app = self.apps[a]
             total_requests = int(math.ceil(self.users[a][b] * app[REQUEST_RATE]))
 
-            nodes_priority = r_nodes[:]
+            nodes_priority = list(r_nodes)
             nodes_priority.sort(key=lambda h:
                                 self._decode_node_priority(individual, a, b, h),
                                 reverse=True)

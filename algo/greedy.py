@@ -32,20 +32,18 @@ class Greedy(sp.Decoder):
 
         capacity = {(h, r): 0 for h in r_nodes for r in self.resources}
 
-        r_apps.sort(key=lambda a: self.apps[a][DEADLINE])
-        for a in r_apps:
+        s_apps = sorted(r_apps, key=lambda a: self.apps[a][DEADLINE])
+        for a in s_apps:
             app = self.apps[a]
-            bs = r_nodes[:]
-            bs.sort(key=lambda b: self.users[a][b], reverse=True)
+            bs = sorted(r_nodes, key=lambda b: self.users[a][b], reverse=True)
             for b in bs:
                 if self.users[a][b] == 0:
                     continue
 
                 total_requests = int(math.ceil(self.users[a][b] * app[REQUEST_RATE]))
 
-                nodes_priority = r_nodes[:]
+                nodes_priority = list(r_nodes)
                 nodes_priority.sort(key=lambda h: self.net_delay[a][b][h])
-
                 for h in nodes_priority:
                     requests = total_requests
                     while requests > 0 and total_requests > 0:

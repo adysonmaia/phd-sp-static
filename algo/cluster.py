@@ -42,9 +42,9 @@ class Cluster(sp.Decoder):
                         for b in r_nodes
                         for h in r_nodes}
 
-        r_apps.sort(key=lambda a: self.apps[a][DEADLINE])
+        s_apps = sorted(r_apps, key=lambda a: self.apps[a][DEADLINE])
         current_capacity = copy.deepcopy(self.nodes)
-        for app_index in r_apps:
+        for app_index in s_apps:
             clusters = self._create_clusters(app_index)
             max_instances = self._get_clusters_max_instances(app_index, clusters)
             for index_c, cluster in enumerate(clusters):

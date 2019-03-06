@@ -56,7 +56,7 @@ class SP3_Chromosome(SP_Chromosome):
             start = a * nb_nodes
             end = start + nb_nodes + 1
             priority = individual[start:end]
-            nodes = r_nodes[:]
+            nodes = list(r_nodes)
             nodes.sort(key=lambda v: priority[v], reverse=True)
             max_nodes = min(nb_nodes, self.apps[a][MAX_INSTANCES])
             selected_nodes.append(nodes[:max_nodes])
@@ -67,8 +67,8 @@ class SP3_Chromosome(SP_Chromosome):
         end = start + nb_requests + 1
         priority = individual[start:end]
 
-        r_requests.sort(key=lambda v: priority[v], reverse=True)
-        for req in r_requests:
+        s_requests = sorted(r_requests, key=lambda v: priority[v], reverse=True)
+        for req in s_requests:
             a, b = self.requests[req]
 
             start = nb_apps * nb_nodes + nb_requests + b * nb_nodes
