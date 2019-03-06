@@ -1,6 +1,6 @@
 import math
-from sklearn import datasets
 import random
+from sklearn import datasets
 
 DEFAULT_HEX_SIZE = 1
 DEFAULT_NB_BLOBS = 5

@@ -1,5 +1,5 @@
-from nsgaii import NSGAII, NSGAII_Chromosome
-from genetic_2 import SP2_Chromosome
+from algo.nsgaii import NSGAII, NSGAII_Chromosome
+from algo.genetic_2 import SP2_Chromosome
 
 INF = float("inf")
 POOL_SIZE = 0

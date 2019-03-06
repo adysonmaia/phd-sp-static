@@ -1,5 +1,5 @@
 import math
-from greedy import Greedy
+from algo.greedy import Greedy
 
 INF = float("inf")
 K1 = 0

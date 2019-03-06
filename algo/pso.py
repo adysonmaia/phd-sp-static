@@ -1,6 +1,6 @@
 import random
 import math
-import sp
+from algo import sp
 
 X_MIN = -1.0
 X_MAX = 1.0

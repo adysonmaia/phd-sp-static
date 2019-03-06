@@ -1,5 +1,5 @@
 import math
-import sp
+from algo import sp
 
 INF = float("inf")
 K1 = 0

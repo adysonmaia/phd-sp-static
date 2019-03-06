@@ -1,6 +1,6 @@
+import time
 from Queue import Queue
 from threading import Thread
-import time
 
 
 class Worker(Thread):

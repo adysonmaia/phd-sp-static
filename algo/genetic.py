@@ -1,6 +1,6 @@
 import math
-from sp import Decoder
-from brkga import Chromosome, BRKGA
+from algo.sp import Decoder
+from algo.brkga import Chromosome, BRKGA
 
 INF = float("inf")
 POOL_SIZE = 0

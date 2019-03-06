@@ -1,7 +1,7 @@
 import math
 import random
-from genetic import SP_Chromosome
-from brkga import BRKGA
+from algo.genetic import SP_Chromosome
+from algo.brkga import BRKGA
 
 INF = float("inf")
 POOL_SIZE = 0

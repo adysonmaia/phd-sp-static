@@ -1,7 +1,7 @@
 import copy
-from docplex.mp.model import Model
 import math
-import sp
+from docplex.mp.model import Model
+from algo import sp
 
 # Constants
 INF = float("inf")

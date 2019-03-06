@@ -1,7 +1,6 @@
-from docplex.mp.model import Model
-from collections import namedtuple
 import math
-import sp
+from docplex.mp.model import Model
+from algo import sp
 
 # Constants
 INF = float("inf")

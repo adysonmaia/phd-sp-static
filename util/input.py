@@ -1,9 +1,8 @@
 import random
 import math
 import json
-import point
-import path
 import pprint
+from util import point, path
 
 INF = float("inf")
 
@@ -196,7 +195,7 @@ class Input:
 
             for p in points:
                 # print("[{}, {}],".format(p.x, p.y))
-                nodes.sort(key=lambda (index, node): node.get_distance(p.to_hex()))
+                nodes.sort(key=lambda item: item[1].get_distance(p.to_hex()))
                 index, node = nodes[0]
                 users[a][index] += 1
 
@@ -219,14 +218,14 @@ class Input:
     #     return users
 
 
-def print_net_graph(graph):
-    print "\n"
-    size = len(graph)
-    for i in range(size):
-        for j in range(size):
-            if(graph[i][j] == INF):
-                print "%7s" % ("INF"),
-            else:
-                print "%7d\t" % (graph[i][j]),
-            if j == size-1:
-                print ""
+# def print_net_graph(graph):
+#     print "\n"
+#     size = len(graph)
+#     for i in range(size):
+#         for j in range(size):
+#             if(graph[i][j] == INF):
+#                 print "%7s" % ("INF"),
+#             else:
+#                 print "%7d\t" % (graph[i][j]),
+#             if j == size-1:
+#                 print ""

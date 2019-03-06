@@ -1,9 +1,9 @@
 import copy
+import math
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-import math
-import sp
-from minlp import MINLP
+from algo import sp
+from algo.minlp import MINLP
 
 # Constants
 INF = float("inf")
