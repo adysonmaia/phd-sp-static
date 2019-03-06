@@ -47,7 +47,7 @@ def gen_apps_figure(data, solutions, apps, nb_nodes, nb_users,
         y_errors = []
         for nb_apps in apps:
             data = filter_data(sol_data, apps=[nb_apps])
-            values = map(lambda row: float(row["value"]), data)
+            values = [float(row["value"]) for row in data]
             mean = np.mean(values)
             sem = st.sem(values)
             if sem > 0.0:
@@ -91,7 +91,7 @@ def gen_users_figure(data, solutions, users, nb_apps, nb_nodes,
         y_errors = []
         for nb_users in users:
             data = filter_data(sol_data, users=[nb_users])
-            values = map(lambda row: float(row["value"]), data)
+            values = [float(row["value"]) for row in data]
             mean = np.mean(values)
             sem = st.sem(values)
             if sem > 0.0:
@@ -135,7 +135,7 @@ def gen_users_apps_figure(data, solutions, users, apps, nb_nodes,
             y_errors = []
             for nb_users in users:
                 data = filter_data(sol_data, users=[nb_users])
-                values = map(lambda row: float(row["value"]), data)
+                values = [float(row["value"]) for row in data]
                 mean = np.mean(values)
                 sem = st.sem(values)  # Std Error Mean
                 if sem > 0.0:

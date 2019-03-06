@@ -59,7 +59,7 @@ class BRKGA:
             map_func = self._pool.map
 
         start_time = time.time()
-        population = map_func(self._set_fitness, population)
+        population = list(map_func(self._set_fitness, population))
         elapsed_time = time.time() - start_time
         # print("time: {}".format(elapsed_time))
 

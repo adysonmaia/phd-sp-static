@@ -1,3 +1,4 @@
+from functools import cmp_to_key
 from algo.brkga import BRKGA, Chromosome
 
 INF = float("inf")
@@ -15,7 +16,8 @@ class NSGAII(BRKGA):
                        elite_proportion, mutant_proportion)
 
     def _classify_population(self, population):
-        fitnesses = map(self.fitness, population)
+        # fitnesses = list(map(self.fitness, population))
+        fitnesses = [self.fitness(indiv) for indiv in population]
         fronts, rank = self._fast_non_dominated_sort(fitnesses)
         distances = self._crowding_distance(fitnesses, fronts)
 
@@ -29,7 +31,7 @@ class NSGAII(BRKGA):
             else:
                 return 1
 
-        return sorted(population, cmp=sort_cmp)
+        return sorted(population, key=cmp_to_key(sort_cmp))
 
     def _dominates(self, fitness_1, fitness_2):
         dominates = False

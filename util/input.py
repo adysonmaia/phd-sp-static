@@ -25,7 +25,7 @@ class Input:
         self._gen_net_graphs()
         self.net_delay = [path.calc_net_delay(g) for g in self.net_graphs]
         self._gen_nodes_capacity()
-        self.resources = self.nodes[0].keys()
+        self.resources = list(self.nodes[0].keys())
         self._gen_rand_users()
 
         return self.nodes, self.apps, self.users, self.resources, self.net_delay, self.apps_demand
