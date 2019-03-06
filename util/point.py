@@ -135,8 +135,8 @@ def calc_rect_bound_box(nb_points, hex_size=DEFAULT_HEX_SIZE):
 
 def gen_2d_points_blob(nb_points, bound_box, nb_centers=DEFAULT_NB_BLOBS, hex_size=DEFAULT_HEX_SIZE):
     centers = 1 + random.randrange(nb_centers)
-    # cluster_std = [hex_size * random.uniform(1.0, 2.0) for _ in range(centers)]
-    cluster_std = 1.0
+    cluster_std = [hex_size * random.uniform(0.1, 1.0) for _ in range(centers)]
+    # cluster_std = 1.0
     center_box = [max(bound_box[0].x, bound_box[0].y),
                   min(bound_box[1].x, bound_box[1].y)]
 

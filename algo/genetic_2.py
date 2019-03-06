@@ -49,6 +49,9 @@ class SP2_Chromosome(SP_Chromosome):
                 for h in r_nodes
                 for b in r_nodes
                 for a in r_apps}
+        app_load = {(a, h): 0
+                    for h in r_nodes
+                    for a in r_apps}
 
         selected_nodes = []
         for a in r_apps:
@@ -73,6 +76,8 @@ class SP2_Chromosome(SP_Chromosome):
             a, b = self.requests[req]
             nodes = list(selected_nodes[a])
             # nodes.sort(key=lambda h: self._decode_node_priority(individual, a, b, h, place, load))
+            nodes.sort(key=lambda h: self._node_priority(individual, a, b, h, app_load))
+            # nodes.sort(key=lambda h: self.net_delay[a][b][h])
             nodes.append(cloud)
             for h in nodes:
                 fit = True
@@ -86,6 +91,7 @@ class SP2_Chromosome(SP_Chromosome):
 
                 if fit:
                     load[a, b, h] += 1
+                    app_load[a, h] += 1
                     place[a, h] = 1
                     for r in self.resources:
                         capacity[h, r] = resources[r]
@@ -96,15 +102,38 @@ class SP2_Chromosome(SP_Chromosome):
     # def _decode_node_priority(self, indiv, a, b, h, place, load):
     #     nb_nodes = len(self.nodes)
     #     r_nodes = range(nb_nodes)
+    #     work_size = self.apps[a][WORK_SIZE]
+    #     cpu_k1 = self.demand[a][CPU][K1]
+    #     cpu_k2 = self.demand[a][CPU][K2]
     #
-    #     cloud_delay = self.net_delay[a][b][nb_nodes - 1]
-    #     node_delay = self.net_delay[a][b][h]
-    #     delay = (cloud_delay - node_delay) / cloud_delay
+    #     proc_delay = 0.0
+    #     net_delay = self.net_delay[a][b][h]
     #
-    #     max_load = sum([load[a, b, v] for v in r_nodes])
-    #     max_load = float(max_load) if max_load > 0 else 1.0
+    #     node_load = 1 + sum([load[a, v, h] for v in r_nodes])
+    #     proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
+    #     if proc_delay_divisor > 0.0:
+    #         proc_delay = work_size / proc_delay_divisor
+    #     else:
+    #         proc_delay = INF
     #
-    #     return delay + load[a, b, h] / max_load
+    #     return net_delay + proc_delay
+
+    def _node_priority(self, indiv, a, b, h, app_load):
+        work_size = self.apps[a][WORK_SIZE]
+        cpu_k1 = self.demand[a][CPU][K1]
+        cpu_k2 = self.demand[a][CPU][K2]
+
+        proc_delay = 0.0
+        net_delay = self.net_delay[a][b][h]
+
+        node_load = 1 + app_load[a, h]
+        proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
+        if proc_delay_divisor > 0.0:
+            proc_delay = work_size / proc_delay_divisor
+        else:
+            proc_delay = INF
+
+        return net_delay + proc_delay
 
 
 def solve_sp(input,

@@ -99,10 +99,10 @@ def exp_2(args=[]):
     # elapsed_time = round(time.time() - start_time, 2)
     # print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
 
-    # start_time = time.time()
-    # solution = algo.genetic_2.solve_sp(config)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
+    start_time = time.time()
+    solution = algo.genetic_2.solve_sp(config)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
 
     # start_time = time.time()
     # solution = algo.genetic_mo.solve_sp(config)
