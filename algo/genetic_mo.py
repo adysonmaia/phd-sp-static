@@ -107,8 +107,8 @@ class MO_Chromosome(SP2_Chromosome, NSGAII_Chromosome):
             cpu_k1 = self.demand[a][CPU][K1]
             cpu_k2 = self.demand[a][CPU][K2]
 
-            instances = filter(lambda h: place[a, h] > 0, r_nodes)
-            bs = filter(lambda b: self.users[a][b] > 0, r_nodes)
+            instances = list(filter(lambda h: place[a, h] > 0, r_nodes))
+            bs = list(filter(lambda b: self.users[a][b] > 0, r_nodes))
 
             for h in instances:
                 node_load = sum([load[a, b, h] for b in bs])

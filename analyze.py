@@ -25,11 +25,11 @@ def get_data_from_file(filename):
 
 
 def filter_data(data, apps=[], nodes=[], users=[], solutions=[]):
-    return filter(lambda row: ((not apps or int(row["apps"]) in apps)
-                               and (not nodes or int(row["nodes"]) in nodes)
-                               and (not users or int(row["users"]) in users)
-                               and (not solutions or row["solution"] in solutions)),
-                  data)
+    return list(filter(lambda row: ((not apps or int(row["apps"]) in apps)
+                                    and (not nodes or int(row["nodes"]) in nodes)
+                                    and (not users or int(row["users"]) in users)
+                                    and (not solutions or row["solution"] in solutions)),
+                       data))
 
 
 def gen_apps_figure(data, solutions, apps, nb_nodes, nb_users,

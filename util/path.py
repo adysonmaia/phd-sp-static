@@ -11,7 +11,6 @@ def calc_net_delay(graph):
 # Solves all pair shortest path via Floyd Warshall Algorithm
 def floyd_warshall(graph):
     # https://www.geeksforgeeks.org/dynamic-programming-set-16-floyd-warshall-algorithm/
-    # dist = map(lambda i: map(lambda j: j, i), graph)
     dist = [[j for j in i] for i in graph]
 
     nodes = range(len(graph))

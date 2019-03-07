@@ -179,7 +179,6 @@ def gen_2d_points_moon(nb_points, bound_box):
 
     points, labels = datasets.make_moons(n_samples=nb_points, noise=noise)
     points = map(lambda p: [(p[0] + 1) / 3.0, (p[1] + 0.5) / 1.5], points)
-
     points = map(lambda p: [p[0] * scale[0] + center_x, p[1] * scale[0] + center_y], points)
     return _bound_points(points, bound_box)
 
@@ -192,4 +191,4 @@ def _bound_points(points, bound_box):
         x = max(bound_box[0].x, min(bound_box[1].x, x))
         y = max(bound_box[0].y, min(bound_box[1].y, y))
         return Point2D(x, y)
-    return map(lambda p: _bound(p), points)
+    return [_bound(p) for p in points]

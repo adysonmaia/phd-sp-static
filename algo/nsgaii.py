@@ -16,7 +16,6 @@ class NSGAII(BRKGA):
                        elite_proportion, mutant_proportion)
 
     def _classify_population(self, population):
-        # fitnesses = list(map(self.fitness, population))
         fitnesses = [self.fitness(indiv) for indiv in population]
         fronts, rank = self._fast_non_dominated_sort(fitnesses)
         distances = self._crowding_distance(fitnesses, fronts)
