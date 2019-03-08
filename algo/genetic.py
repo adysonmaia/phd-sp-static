@@ -1,6 +1,7 @@
 import math
-from algo.sp import Decoder
-from algo.brkga import Chromosome, BRKGA
+from algo.util.output import Output
+from algo.util.sp import SP_Solver
+from algo.util.brkga import Chromosome, BRKGA
 
 INF = float("inf")
 POOL_SIZE = 0
@@ -13,10 +14,10 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class SP_Chromosome(Chromosome, Decoder):
+class SP_Chromosome(Chromosome, SP_Solver):
     def __init__(self, input):
         Chromosome.__init__(self)
-        Decoder.__init__(self, input)
+        SP_Solver.__init__(self, input)
         self.nb_genes = len(self.apps) * (2 * len(self.nodes) + 1)
 
     def gen_init_population(self):
@@ -46,8 +47,8 @@ class SP_Chromosome(Chromosome, Decoder):
         return best_value == 0.0
 
     def fitness(self, individual):
-        data_decoded = self.decode(individual)
-        return self.calc_qos_violation(*data_decoded)
+        result = self.decode(individual)
+        return self.metric.get_qos_violation(*result)
 
     def decode(self, individual):
         nb_apps = len(self.apps)
@@ -79,7 +80,7 @@ class SP_Chromosome(Chromosome, Decoder):
 
             nodes_priority = list(r_nodes)
             nodes_priority.sort(key=lambda h:
-                                self._decode_node_priority(individual, a, b, h),
+                                self._node_priority(individual, a, b, h),
                                 reverse=True)
 
             for h in nodes_priority:
@@ -106,9 +107,9 @@ class SP_Chromosome(Chromosome, Decoder):
                 if total_requests == 0:
                     break
 
-        return self._decode_local_search(place, load)
+        return self.local_search(place, load)
 
-    def _decode_node_priority(self, individual, app, bs, node):
+    def _node_priority(self, individual, app, bs, node):
         nb_apps = len(self.apps)
         nb_nodes = len(self.nodes)
 
@@ -137,10 +138,5 @@ def solve_sp(input,
                     pool_size=POOL_SIZE)
 
     population = genetic.solve()
-
-    data_decoded = chromossome.decode(population[0])
-    e = chromossome.calc_qos_violation(*data_decoded)
-    place = chromossome.get_places(*data_decoded)
-    distribution = chromossome.get_distributions(*data_decoded)
-
-    return e, place, distribution
+    result = chromossome.decode(population[0])
+    return Output(input).set_solution(*result)

@@ -2,8 +2,9 @@ import copy
 import math
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-from algo import sp
-from algo.minlp import MINLP
+from algo.util.output import Output
+from algo.util.sp import SP_Solver
+from algo import minlp
 
 # Constants
 INF = float("inf")
@@ -19,10 +20,9 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class Cluster(sp.Decoder):
+class Cluster(SP_Solver):
     def __init__(self, input, time_limit=0):
-
-        sp.Decoder.__init__(self, input)
+        SP_Solver.__init__(self, input)
         self.time_limit = time_limit
         self.bs_map = input.bs_map
         self.users_map = input.users_map
@@ -37,27 +37,29 @@ class Cluster(sp.Decoder):
         place = {(a, h): 0
                  for a in r_apps
                  for h in r_nodes}
-        distribution = {(a, b, h): 0
-                        for a in r_apps
-                        for b in r_nodes
-                        for h in r_nodes}
+        load = {(a, b, h): 0
+                for a in r_apps
+                for b in r_nodes
+                for h in r_nodes}
 
         s_apps = sorted(r_apps, key=lambda a: self.apps[a][DEADLINE])
         current_capacity = copy.deepcopy(self.nodes)
         for app_index in s_apps:
             clusters = self._create_clusters(app_index)
             max_instances = self._get_clusters_max_instances(app_index, clusters)
-            for index_c, cluster in enumerate(clusters):
-                result = self._solve_cluster(app_index, cluster,
-                                             current_capacity, max_instances[index_c])
-                for h in cluster:
-                    if result[0][h]:
+            for c_index, cluster in enumerate(clusters):
+                c_output = self._solve_cluster(app_index, cluster,
+                                               current_capacity, max_instances[c_index])
+                c_a = 0
+                for c_h, h in enumerate(cluster):
+                    if c_output.place[c_a, c_h]:
                         place[app_index, h] = 1
-                    for b in cluster:
-                        distribution[app_index, b, h] += result[1][b, h]
-                self._update_nodes_capacity(place, distribution, current_capacity)
+                    for c_b, b in enumerate(cluster):
+                        load[app_index, b, h] += c_output.load[c_a, c_b, c_h]
 
-        return self._decode_local_search(place, distribution)
+                self._update_nodes_capacity(place, load, current_capacity)
+
+        return self.local_search(place, load)
 
     def _create_clusters(self, app_index):
         nb_nodes = len(self.nodes)
@@ -143,27 +145,9 @@ class Cluster(sp.Decoder):
                              for a in [app_index]]
         return c_input
 
-    def _get_cluster_output(self, result, app_index, cluster):
-        place_c, distribution_c = result
-
-        place = {}
-        distribution = {}
-
-        a_c = 0
-        for h_c, h in enumerate(cluster):
-            place[h] = place_c[a_c, h_c]
-            for b_c, b in enumerate(cluster):
-                distribution[b, h] = distribution_c[a_c, b_c, h_c]
-
-        return place, distribution
-
     def _solve_cluster(self, app_index, cluster, capacities, max_instances):
         cluster_input = self._get_cluster_input(app_index, cluster, capacities, max_instances)
-
-        solver = MINLP(cluster_input, self.time_limit)
-        result = list(solver.solve())
-        result.pop(0)
-        return self._get_cluster_output(result, app_index, cluster)
+        return minlp.solve_sp(cluster_input, self.time_limit)
 
     def _update_nodes_capacity(self, place, distribution, result):
         nb_nodes = len(self.nodes)
@@ -183,10 +167,5 @@ class Cluster(sp.Decoder):
 
 def solve_sp(input, time_limit=200):
     solver = Cluster(input, time_limit)
-    result = list(solver.solve())
-
-    e = solver.calc_qos_violation(*result)
-    place = solver.get_places(*result)
-    distribution = solver.get_distributions(*result)
-
-    return e, place, distribution
+    result = solver.solve()
+    return Output(input).set_solution(*result)

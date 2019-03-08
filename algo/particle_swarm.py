@@ -1,10 +1,13 @@
 import math
 from algo.util.output import Output
-from algo.util.brkga import BRKGA
-from algo.genetic import SP_Chromosome
+from algo.util.sp import SP_Solver
+from algo.util.pso import PSO, PSO_Decoder
 
+# Constants
+X_MIN = -1.0
+X_MAX = 1.0
 INF = float("inf")
-POOL_SIZE = 0
+
 K1 = 0
 K2 = 1
 CPU = "CPU"
@@ -14,9 +17,11 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class SP2_Chromosome(SP_Chromosome):
+class SP_Decoder(SP_Solver, PSO_Decoder):
     def __init__(self, input):
-        SP_Chromosome.__init__(self, input)
+
+        SP_Solver.__init__(self, input)
+        PSO_Decoder.__init__(self)
 
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
@@ -27,14 +32,19 @@ class SP2_Chromosome(SP_Chromosome):
         for a in r_apps:
             for b in r_nodes:
                 nb_requests = int(math.ceil(self.users[a][b] * self.apps[a][REQUEST_RATE]))
-                self.requests += [(a, b)] * nb_requests
+                self.requests += ([(a, b)] * nb_requests)
 
-        self.nb_genes = nb_apps * nb_nodes + len(self.requests)
+        self.nb_dimensions = len(self.apps) * len(self.requests)
 
-    def gen_init_population(self):
-        return []
+    def stopping_criteria(self, best_coding, best_cost):
+        print("best: {}".format(best_cost))
+        return best_cost == 0.0
 
-    def decode(self, individual):
+    def get_cost(self, coding):
+        data_decoded = self.decode(coding)
+        return self.calc_qos_violation(*data_decoded)
+
+    def decode(self, coding):
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
         nb_nodes = len(self.nodes)
@@ -50,32 +60,27 @@ class SP2_Chromosome(SP_Chromosome):
                 for h in r_nodes
                 for b in r_nodes
                 for a in r_apps}
-        app_load = {(a, h): 0
-                    for h in r_nodes
-                    for a in r_apps}
 
         selected_nodes = []
         for a in r_apps:
             start = a * nb_nodes
-            # end = start + nb_nodes + 1
-            end = start + nb_nodes
-            priority = individual[start:end]
-            nodes = list(r_nodes)
-            nodes.sort(key=lambda v: priority[v], reverse=True)
+            end = start + nb_nodes + 1
+            priority = coding[start:end]
+            nodes = sorted(r_nodes, key=lambda v: priority[v], reverse=True)
             max_nodes = min(nb_nodes, self.apps[a][MAX_INSTANCES])
             selected_nodes.append(nodes[:max_nodes])
 
         capacity = {(h, r): 0 for h in r_nodes for r in self.resources}
 
         start = nb_apps * nb_nodes
-        end = start + nb_requests
-        priority = individual[start:end]
+        end = start + nb_requests + 1
+        priority = coding[start:end]
 
         s_requests = sorted(r_requests, key=lambda v: priority[v], reverse=True)
         for req in s_requests:
             a, b = self.requests[req]
             nodes = list(selected_nodes[a])
-            nodes.sort(key=lambda h: self._node_priority(individual, a, b, h, app_load))
+            nodes.sort(key=lambda h: self._node_priority(coding, a, b, h, place, load))
             nodes.append(cloud)
             for h in nodes:
                 fit = True
@@ -89,7 +94,6 @@ class SP2_Chromosome(SP_Chromosome):
 
                 if fit:
                     load[a, b, h] += 1
-                    app_load[a, h] += 1
                     place[a, h] = 1
                     for r in self.resources:
                         capacity[h, r] = resources[r]
@@ -97,38 +101,24 @@ class SP2_Chromosome(SP_Chromosome):
 
         return self.local_search(place, load)
 
-    def _node_priority(self, indiv, a, b, h, app_load):
-        work_size = self.apps[a][WORK_SIZE]
-        cpu_k1 = self.demand[a][CPU][K1]
-        cpu_k2 = self.demand[a][CPU][K2]
+    def _node_priority(self, coding, a, b, h, place, load):
+        nb_nodes = len(self.nodes)
+        r_nodes = range(nb_nodes)
 
-        proc_delay = 0.0
-        net_delay = self.net_delay[a][b][h]
+        cloud_delay = self.net_delay[a][b][nb_nodes - 1]
+        node_delay = self.net_delay[a][b][h]
+        delay = (cloud_delay - node_delay) / cloud_delay
 
-        node_load = 1 + app_load[a, h]
-        proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
-        if proc_delay_divisor > 0.0:
-            proc_delay = work_size / proc_delay_divisor
-        else:
-            proc_delay = INF
+        max_load = sum([load[a, b, v] for v in r_nodes])
+        max_load = float(max_load) if max_load > 0 else 1.0
 
-        return net_delay + proc_delay
+        return delay + load[a, b, h] / max_load
 
 
-def solve_sp(input,
-             nb_generations=200,
-             population_size=100,
-             elite_proportion=0.4,
-             mutant_proportion=0.3):
+def solve_sp(input, nb_particles=100, max_iteration=100):
+    decoder = SP_Decoder(input)
+    pso = PSO(decoder, nb_particles, max_iteration)
+    position, cost = pso.solve()
 
-    chromossome = SP2_Chromosome(input)
-    genetic = BRKGA(chromossome,
-                    nb_generations=nb_generations,
-                    population_size=population_size,
-                    elite_proportion=elite_proportion,
-                    mutant_proportion=mutant_proportion,
-                    pool_size=POOL_SIZE)
-
-    population = genetic.solve()
-    result = chromossome.decode(population[0])
+    result = decoder.decode(position)
     return Output(input).set_solution(*result)

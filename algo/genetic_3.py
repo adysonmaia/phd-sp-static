@@ -1,7 +1,8 @@
 import math
 import random
+from algo.util.output import Output
+from algo.util.brkga import BRKGA
 from algo.genetic import SP_Chromosome
-from algo.brkga import BRKGA
 
 INF = float("inf")
 POOL_SIZE = 0
@@ -113,20 +114,7 @@ class SP3_Chromosome(SP_Chromosome):
                     for r in self.resources:
                         capacity[h, r] = resources[r]
 
-        return self._decode_local_search(place, load)
-
-    # def _decode_node_priority(self, indiv, a, b, h, place, load):
-    #     nb_nodes = len(self.nodes)
-    #     r_nodes = range(nb_nodes)
-    #
-    #     cloud_delay = self.net_delay[a][b][nb_nodes - 1]
-    #     node_delay = self.net_delay[a][b][h]
-    #     delay = (cloud_delay - node_delay) / cloud_delay
-    #
-    #     max_load = sum([load[a, b, v] for v in r_nodes])
-    #     max_load = float(max_load) if max_load > 0 else 1.0
-    #
-    #     return delay + load[a, b, h] / max_load
+        return self.local_search(place, load)
 
 
 def solve_sp(input,
@@ -144,10 +132,5 @@ def solve_sp(input,
                     pool_size=POOL_SIZE)
 
     population = genetic.solve()
-
-    data_decoded = chromossome.decode(population[0])
-    e = chromossome.calc_qos_violation(*data_decoded)
-    place = chromossome.get_places(*data_decoded)
-    distribution = chromossome.get_distributions(*data_decoded)
-
-    return e, place, distribution
+    result = chromossome.decode(population[0])
+    return Output(input).set_solution(*result)

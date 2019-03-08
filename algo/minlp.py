@@ -1,6 +1,7 @@
 import math
 from docplex.mp.model import Model
-from algo import sp
+from algo.util.output import Output
+from algo.util.sp import SP_Solver
 
 # Constants
 INF = float("inf")
@@ -16,10 +17,10 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class MINLP(sp.Decoder):
+class MINLP(SP_Solver):
     def __init__(self, input, time_limit=0):
 
-        sp.Decoder.__init__(self, input)
+        SP_Solver.__init__(self, input)
         self.time_limit = time_limit
 
     def solve(self):
@@ -200,10 +201,7 @@ class MINLP(sp.Decoder):
 def solve_sp(input, time_limit=300):
     solver = MINLP(input, time_limit)
     result = list(solver.solve())
-
-    e_relaxed = result.pop(0)
-    e_original = solver.calc_qos_violation(*result)
-    place = solver.get_places(*result)
-    distribution = solver.get_distributions(*result)
-
-    return e_relaxed, place, distribution, e_original
+    output = Output(input)
+    output.e_relaxed = result.pop(0)
+    output.set_solution(*result)
+    return output

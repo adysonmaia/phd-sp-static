@@ -9,10 +9,10 @@ from pathos.multiprocessing import ProcessPool
 class BRKGA:
     def __init__(self,
                  chromossome,
-                 population_size=100,
-                 nb_generations=100,
-                 elite_proportion=0.5,
-                 mutant_proportion=0.1,
+                 population_size,
+                 nb_generations,
+                 elite_proportion,
+                 mutant_proportion,
                  pool_size=0):
 
         self.chromossome = chromossome

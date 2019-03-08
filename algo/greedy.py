@@ -1,5 +1,6 @@
 import math
-from algo import sp
+from algo.util.output import Output
+from algo.util.sp import SP_Solver
 
 INF = float("inf")
 K1 = 0
@@ -11,10 +12,10 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class Greedy(sp.Decoder):
+class Greedy(SP_Solver):
 
     def __init__(self, input):
-        sp.Decoder.__init__(self, input)
+        SP_Solver.__init__(self, input)
 
     def solve(self):
         nb_apps = len(self.apps)
@@ -67,16 +68,10 @@ class Greedy(sp.Decoder):
                             requests -= 1
                     if total_requests == 0:
                         break
-        return self._decode_local_search(place, load)
+        return self.local_search(place, load)
 
 
 def solve_sp(input):
-
-    g = Greedy(input)
-    result = g.solve()
-
-    e = g.calc_qos_violation(*result)
-    place = g.get_places(*result)
-    distribution = g.get_distributions(*result)
-
-    return e, place, distribution
+    solver = Greedy(input)
+    result = solver.solve()
+    return Output(input).set_solution(*result)

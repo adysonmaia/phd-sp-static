@@ -1,5 +1,5 @@
 from functools import cmp_to_key
-from algo.brkga import BRKGA, Chromosome
+from algo.util.brkga import BRKGA, Chromosome
 
 INF = float("inf")
 
@@ -7,10 +7,10 @@ INF = float("inf")
 class NSGAII(BRKGA):
     def __init__(self,
                  chromossome,
-                 population_size=100,
-                 nb_generations=100,
-                 elite_proportion=0.5,
-                 mutant_proportion=0.1):
+                 population_size,
+                 nb_generations,
+                 elite_proportion,
+                 mutant_proportion):
 
         BRKGA.__init__(self, chromossome, population_size, nb_generations,
                        elite_proportion, mutant_proportion)

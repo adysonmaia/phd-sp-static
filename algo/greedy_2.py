@@ -1,7 +1,9 @@
 import copy
 import math
+from algo.util.output import Output
+from algo.util.sp import SP_Solver
 from docplex.mp.model import Model
-from algo import sp
+
 
 # Constants
 INF = float("inf")
@@ -17,10 +19,9 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class Greedy_2(sp.Decoder):
+class Greedy_2(SP_Solver):
     def __init__(self, input, time_limit=0):
-
-        sp.Decoder.__init__(self, input)
+        SP_Solver.__init__(self, input)
         self.time_limit = time_limit
 
     def solve(self):
@@ -48,7 +49,7 @@ class Greedy_2(sp.Decoder):
                     distribution[app_index, b, h] = result[1][b, h]
             self._update_nodes_capacity(place, distribution, current_capacity)
 
-        # return self._decode_local_search(place, distribution)
+        # return self.local_search(place, distribution)
         return place, distribution
 
     def _solve_app(self, app_index, nodes):
@@ -198,10 +199,5 @@ class Greedy_2(sp.Decoder):
 
 def solve_sp(input, time_limit=600):
     solver = Greedy_2(input, time_limit)
-    result = list(solver.solve())
-
-    e = solver.calc_qos_violation(*result)
-    place = solver.get_places(*result)
-    distribution = solver.get_distributions(*result)
-
-    return e, place, distribution
+    result = solver.solve()
+    return Output(input).set_solution(*result)

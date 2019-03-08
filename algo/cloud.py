@@ -1,5 +1,6 @@
 import math
 from algo.greedy import Greedy
+from algo.util.output import Output
 
 INF = float("inf")
 K1 = 0
@@ -30,20 +31,15 @@ class Cloud(Greedy):
         place = {(a, h): 0 if h != cloud else 1
                  for a in r_apps
                  for h in r_nodes}
-        distribution = {(a, b, h): 0 if h != cloud else requests[a][b]
-                        for a in r_apps
-                        for b in r_nodes
-                        for h in r_nodes}
+        load = {(a, b, h): 0 if h != cloud else requests[a][b]
+                for a in r_apps
+                for b in r_nodes
+                for h in r_nodes}
 
-        return place, distribution
+        return place, load
 
 
 def solve_sp(input):
     solver = Cloud(input)
     result = solver.solve()
-
-    e = solver.calc_qos_violation(*result)
-    place = solver.get_places(*result)
-    distribution = solver.get_distributions(*result)
-
-    return e, place, distribution
+    return Output(input).set_solution(*result)

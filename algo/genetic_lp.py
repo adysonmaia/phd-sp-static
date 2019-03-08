@@ -1,7 +1,9 @@
 import math
 from docplex.mp.model import Model
+from algo.util.output import Output
+from algo.util.brkga import BRKGA
 from algo.genetic import SP_Chromosome
-from algo.brkga import BRKGA
+
 
 INF = float("inf")
 POOL_SIZE = 3
@@ -52,7 +54,7 @@ class LP_Chromosome(SP_Chromosome):
         load = self._decode_load_distribution(place)
         # elapsed_time = time.time() - start_time
         # print("load distri time: {}".format(elapsed_time))
-        return self._decode_local_search(place, load)
+        return self.local_search(place, load)
 
     def _decode_load_distribution(self, place):
         nb_apps = len(self.apps)
@@ -151,7 +153,7 @@ class LP_Chromosome(SP_Chromosome):
                     for h in r_nodes}
         return load
 
-    def _decode_local_search(self, place, load):
+    def local_search(self, place, load):
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
         nb_nodes = len(self.nodes)
@@ -169,7 +171,7 @@ class LP_Chromosome(SP_Chromosome):
                     # print("app {} - source {}: load {} - requests {}".format(a, b, load_ab, requests))
                     load[a, b, cloud] += requests - load_ab
 
-        return SP_Chromosome._decode_local_search(self, place, load)
+        return SP_Chromosome.local_search(self, place, load)
 
 
 def solve_sp(input,
@@ -187,10 +189,5 @@ def solve_sp(input,
                     pool_size=POOL_SIZE)
 
     population = genetic.solve()
-
-    data_decoded = chromossome.decode(population[0])
-    e = chromossome.calc_qos_violation(*data_decoded)
-    place = chromossome.get_places(*data_decoded)
-    distribution = chromossome.get_distributions(*data_decoded)
-
-    return e, place, distribution
+    result = chromossome.decode(population[0])
+    return Output(input).set_solution(*result)

@@ -34,26 +34,16 @@ def exp_1(args=[]):
                         config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
                         for title, funct in solutions.iteritems():
-                            result = funct(config)
-                            values = None
-                            if title == "minlp":
-                                if not result:
-                                    result = [float('inf')] * 4
-                                values = [("milp", result[0]),
-                                          ("milp-minlp", result[3])]
-                            else:
-                                values = [(title, result[0])]
-
-                            for solution, obj_value in values:
-                                row = {"nodes": nb_nodes,
-                                       "apps": nb_apps,
-                                       "users": nb_users,
-                                       "run": run,
-                                       "solution": solution,
-                                       "value": obj_value}
-                                writer.writerow(row)
-                                results.append(row)
-                                print(row)
+                            output = funct(config)
+                            row = {"nodes": nb_nodes,
+                                   "apps": nb_apps,
+                                   "users": nb_users,
+                                   "run": run,
+                                   "solution": title,
+                                   "value": output.get_qos_violation()}
+                            writer.writerow(row)
+                            results.append(row)
+                            print(row)
 
 
 def exp_2(args=[]):
@@ -72,59 +62,59 @@ def exp_2(args=[]):
     start_time = time.time()
     solution = algo.cloud.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("cloud", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("cloud", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.greedy.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("greedy", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.greedy_2.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy 2", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("greedy 2", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.greedy_2_2.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("greedy 2.2", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("greedy 2.2", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.cluster.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("cluster", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("cluster", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.genetic.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("genetic", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("genetic", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.genetic_2.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("genetic 2", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("genetic 2", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.genetic_mo.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("nsga-ii", solution[0], elapsed_time))
+    print("{} - {} - {}s".format("nsga-ii", solution.get_qos_violation(), elapsed_time))
 
     start_time = time.time()
     solution = algo.minlp.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("milp", solution[0], elapsed_time))
-    print("{} - {} - {}s".format("milp-minlp", solution[3], elapsed_time))
+    print("{} - {} - {}s".format("minlp", solution.get_qos_violation(), elapsed_time))
+    print("{} - {} - {}s".format("minlp relaxed", solution.e_relaxed, elapsed_time))
 
     start_time = time.time()
     solution = algo.minlp_2.solve_sp(config)
     elapsed_time = round(time.time() - start_time, 2)
-    print("{} - {} - {}s".format("milp 2", solution[0], elapsed_time))
-    print("{} - {} - {}s".format("milp-minlp 2", solution[3], elapsed_time))
+    print("{} - {} - {}s".format("minlp 2", solution.get_qos_violation(), elapsed_time))
+    print("{} - {} - {}s".format("minlp relaxed 2", solution.e_relaxed, elapsed_time))
 
     # start_time = time.time()
     # solution = algo.lp.solve_sp(config)
     # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("lp", solution[0], elapsed_time))
+    # print("{} - {} - {}s".format("lp", solution.get_qos_violation(), elapsed_time))
 
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(solution[1])

@@ -1,4 +1,5 @@
 import math
+from algo.util.metric import Metric
 
 INF = float("inf")
 POOL_SIZE = 0
@@ -11,9 +12,8 @@ REQUEST_RATE = "request_rate"
 WORK_SIZE = "work_size"
 
 
-class Decoder():
+class SP_Solver():
     def __init__(self, input):
-
         self.input = input
         self.nodes = input.nodes
         self.apps = input.apps
@@ -21,28 +21,22 @@ class Decoder():
         self.resources = input.resources
         self.net_delay = input.net_delay
         self.demand = input.apps_demand
+        self.metric = Metric(input)
 
-    def fitness(self, coding):
-        data_decoded = self.decode(coding)
-        return self.calc_qos_violation(*data_decoded)
-
-    def decode(self, coding):
-        nb_apps = len(self.apps)
-        r_apps = range(nb_apps)
-        nb_nodes = len(self.nodes)
-        r_nodes = range(nb_nodes)
+    def solve(self):
+        r_nodes = range(len(self.nodes))
+        r_apps = range(len(self.apps))
 
         place = {(a, h): 0
-                 for h in r_nodes
-                 for a in r_apps}
+                 for a in r_apps
+                 for h in r_nodes}
         load = {(a, b, h): 0
-                for h in r_nodes
+                for a in r_apps
                 for b in r_nodes
-                for a in r_apps}
+                for h in r_nodes}
+        return self.local_search(place, load)
 
-        return (place, load)
-
-    def _decode_local_search(self, place, load):
+    def local_search(self, place, load):
         r_apps = range(len(self.apps))
         nb_nodes = len(self.nodes)
         r_nodes = range(nb_nodes)
@@ -72,58 +66,6 @@ class Decoder():
                     load[a, b, h] = 0
 
         return place, load
-
-    def calc_qos_violation(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
-
-        e = 0.0
-        for a in r_apps:
-            app = self.apps[a]
-            work_size = app[WORK_SIZE]
-            deadline = app[DEADLINE]
-            cpu_k1 = self.demand[a][CPU][K1]
-            cpu_k2 = self.demand[a][CPU][K2]
-
-            instances = list(filter(lambda h: place[a, h] > 0, r_nodes))
-            bs = list(filter(lambda b: self.users[a][b] > 0, r_nodes))
-
-            max_delay = 0.0
-            for h in instances:
-                node_load = sum([load[a, b, h] for b in bs])
-                if node_load == 0.0:
-                    continue
-                proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
-                proc_delay = INF
-                if proc_delay_divisor > 0.0:
-                    proc_delay = app[WORK_SIZE] / proc_delay_divisor
-                for b in bs:
-                    if load[a, b, h] > 0:
-                        delay = self.net_delay[a][b][h] + proc_delay
-                        if delay > max_delay:
-                            max_delay = delay
-
-            violation = max_delay - deadline
-            if violation > 0.0 and violation > e:
-                e = violation
-        return e
-
-    def get_distributions(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
-
-        return {(a, b, h): place[a, h] * load[a, b, h]
-                / math.ceil(self.users[a][b] * self.apps[a][REQUEST_RATE])
-                for a in r_apps
-                for b in r_nodes
-                for h in r_nodes
-                if load[a, b, h] > 0}
-
-    def get_places(self, place, load=None):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
-
-        return [[h for h in r_nodes if place[a, h] > 0] for a in r_apps]
 
     def is_valid_solution(self, place, load):
         r_apps = range(len(self.apps))
