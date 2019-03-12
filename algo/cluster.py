@@ -1,5 +1,6 @@
 import copy
 import math
+from functools import reduce
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from algo.util.output import Output
@@ -64,9 +65,6 @@ class Cluster(SP_Solver):
     def _create_clusters(self, app_index):
         nb_nodes = len(self.nodes)
         nb_bs = nb_nodes - 2
-        # r_nodes = range(nb_nodes)
-        cloud_index = nb_nodes - 1
-        core_index = nb_nodes - 2
 
         features = []
         features_map = {}
@@ -92,8 +90,6 @@ class Cluster(SP_Solver):
                     max_score = score
                     nb_clusters = k
 
-        # nb_clusters = min(4, len(features), self.apps[app_index][MAX_INSTANCES])
-
         kmeans = KMeans(n_clusters=nb_clusters)
         kmeans.fit(features)
         labels = list(kmeans.labels_)
@@ -103,19 +99,64 @@ class Cluster(SP_Solver):
             node = features_map[index]
             clusters[cluster].append(node)
 
-        # users = self.users[app_index]
-        # for bs_index, bs in enumerate(self.bs_map):
-        #     if users[bs_index] > 0:
-        #         continue
-        #     insert_list = []
-        #     for cluster_index, cluster in enumerate(clusters):
-        #         for node_index in cluster:
-        #             node = self.bs_map[node_index]
-        #             if node.get_distance(bs) <= 1:
-        #                 insert_list.append(cluster_index)
-        #                 break
-        #     for cluster_index in insert_list:
-        #         clusters[cluster_index].append(bs_index)
+        return self._clusters_local_search(clusters, app_index)
+
+    def _clusters_local_search(self, clusters, app_index):
+        nb_nodes = len(self.nodes)
+        r_nodes = range(nb_nodes)
+        core_index = nb_nodes - 2
+        cloud_index = nb_nodes - 1
+        users = self.users[app_index]
+        distances = self.net_delay[app_index]
+        req_rate = self.apps[app_index][REQUEST_RATE]
+        deadline = self.apps[app_index][DEADLINE]
+
+        demands = [int(math.ceil(users[h] * req_rate)) for h in r_nodes]
+        capacities = [0.0 for _ in r_nodes]
+        for b in r_nodes:
+            capacity = INF
+            for r in self.resources:
+                k1 = self.demand[app_index][r][K1]
+                k2 = self.demand[app_index][r][K1]
+                c = self.nodes[b][r]
+                max_req = 0
+                if k2 < c and k1 > 0:
+                    max_req = (c - k2) / float(k1)
+                elif k2 < c and k1 == 0:
+                    max_req = INF
+                else:
+                    max_req = 0
+                if max_req < capacity:
+                    capacity = max_req
+            capacities[b] = capacity
+
+        f_nodes = list(filter(lambda i: demands[i] == 0
+                              and capacities[i] > 0
+                              and i != cloud_index
+                              and i != core_index, r_nodes))
+
+        for cluster in clusters:
+            if len(cluster) == 0:
+                continue
+
+            c_demand = reduce(lambda s, b: s + demands[b], cluster)
+            c_capacity = reduce(lambda s, b: s + capacities[b], cluster)
+
+            if c_demand <= c_capacity:
+                continue
+
+            node = reduce(lambda m, i: m if users[m] > users[i] else i, cluster)
+            s_nodes = sorted(f_nodes, key=lambda i: distances[node][i])
+            for i in s_nodes:
+                if distances[node][i] > deadline:
+                    continue
+
+                c_demand += demands[i]
+                c_capacity += capacities[i]
+                cluster.append(i)
+
+                if c_demand <= c_capacity:
+                    break
 
         for cluster in clusters:
             cluster.append(cloud_index)

@@ -8,3 +8,4 @@ from . import greedy_2_2
 from . import minlp
 from . import minlp_2
 from . import cluster
+from . import cluster_2
