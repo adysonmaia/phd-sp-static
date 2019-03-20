@@ -197,7 +197,7 @@ class Greedy_2(SP_Solver):
         return result
 
 
-def solve_sp(input, time_limit=600):
+def solve_sp(input, time_limit=200):
     solver = Greedy_2(input, time_limit)
     result = solver.solve()
     return Output(input).set_solution(*result)

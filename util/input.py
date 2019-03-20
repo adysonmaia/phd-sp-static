@@ -95,7 +95,6 @@ class Input:
             bs = point.gen_hex_map(nb_bs)
 
         e_bs = list(enumerate(bs))
-        bs_indexes = {b: i for i, b in e_bs}
         core_index = self.nb_nodes - 2
         cloud_index = self.nb_nodes - 1
         r_apps = range(self.nb_apps)
@@ -122,10 +121,8 @@ class Input:
                 graph[a][b_index][core_index] = delay
                 graph[a][core_index][b_index] = delay
 
-            neighbors = b.get_neighbors()
-            for n in neighbors:
-                if n in bs_indexes:
-                    n_index = bs_indexes[n]
+            for n_index, n in e_bs:
+                if b.is_neighbor(n):
                     for a in r_apps:
                         delay = self.apps[a]["net_delay"]["bs_bs"]
                         if isinstance(delay, list) or isinstance(delay, tuple):

@@ -69,10 +69,10 @@ def exp_2(args=[]):
     # elapsed_time = round(time.time() - start_time, 2)
     # print("{} - {} - {}s".format("greedy", solution.get_qos_violation(), elapsed_time))
 
-    # start_time = time.time()
-    # solution = algo.greedy_2.solve_sp(config)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("greedy 2", solution.get_qos_violation(), elapsed_time))
+    start_time = time.time()
+    solution = algo.greedy_2.solve_sp(config)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("greedy 2", solution.get_qos_violation(), elapsed_time))
 
     # start_time = time.time()
     # solution = algo.greedy_2_2.solve_sp(config)
@@ -94,21 +94,21 @@ def exp_2(args=[]):
     # elapsed_time = round(time.time() - start_time, 2)
     # print("{} - {} - {}s".format("genetic", solution.get_qos_violation(), elapsed_time))
 
-    # start_time = time.time()
-    # solution = algo.genetic_2.solve_sp(config)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("genetic 2", solution.get_qos_violation(), elapsed_time))
+    start_time = time.time()
+    solution = algo.genetic_2.solve_sp(config)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("genetic 2", solution.get_qos_violation(), elapsed_time))
 
     # start_time = time.time()
     # solution = algo.genetic_mo.solve_sp(config)
     # elapsed_time = round(time.time() - start_time, 2)
     # print("{} - {} - {}s".format("nsga-ii", solution.get_qos_violation(), elapsed_time))
 
-    # start_time = time.time()
-    # solution = algo.minlp.solve_sp(config)
-    # elapsed_time = round(time.time() - start_time, 2)
-    # print("{} - {} - {}s".format("minlp", solution.get_qos_violation(), elapsed_time))
-    # print("{} - {} - {}s".format("minlp relaxed", solution.e_relaxed, elapsed_time))
+    start_time = time.time()
+    solution = algo.minlp.solve_sp(config)
+    elapsed_time = round(time.time() - start_time, 2)
+    print("{} - {} - {}s".format("minlp", solution.get_qos_violation(), elapsed_time))
+    print("{} - {} - {}s".format("minlp relaxed", solution.e_relaxed, elapsed_time))
 
     # start_time = time.time()
     # solution = algo.minlp_2.solve_sp(config)
@@ -142,18 +142,23 @@ def exp_3(args=[]):
     config = input.Input("input.json")
     config.gen_rand_data(nb_nodes, nb_apps, nb_users)
 
-    nb_clusters = 4
     start_time = time.time()
     for a in range(nb_apps):
         data = [h for h in range(nb_nodes) if config.users[a][h] > 0]
         distances = config.net_delay[a]
+
+        # pp = pprint.PrettyPrinter(indent=4)
+        # pp.pprint(distances)
+        # print(" ")
+
+        nb_clusters = min(10, len(data), config.apps[a]["max_instances"])
 
         kmetoid = KMedoids()
         for k in range(1, nb_clusters + 1):
             clusters = kmetoid.fit(k, data, distances)
             score = kmetoid.silhouette_score(clusters, distances)
 
-            # print(k)
+            # print(a, k)
             # pp = pprint.PrettyPrinter(indent=4)
             # pp.pprint(clusters)
             # print("silhouette score", score)
@@ -161,21 +166,21 @@ def exp_3(args=[]):
     elapsed_time = round(time.time() - start_time, 2)
     print("KMetoid {}s".format(elapsed_time))
 
-    start_time = time.time()
-    for a in range(nb_apps):
-        bs = list(filter(lambda h: config.users[a][h] > 0, range(nb_nodes)))
-        data = []
-        for b in bs:
-            point = config.bs_map[b].to_pixel()
-            data.append([point.x, point.y])
-
-        for k in range(2, nb_clusters + 1):
-            kmeans = KMeans(n_clusters=k)
-            kmeans.fit(data)
-            score = silhouette_score(data, kmeans.labels_)
-
-    elapsed_time = round(time.time() - start_time, 2)
-    print("KMeans {}s".format(elapsed_time))
+    # start_time = time.time()
+    # for a in range(nb_apps):
+    #     bs = list(filter(lambda h: config.users[a][h] > 0, range(nb_nodes)))
+    #     data = []
+    #     for b in bs:
+    #         point = config.bs_map[b].to_pixel()
+    #         data.append([point.x, point.y])
+    #
+    #     for k in range(2, nb_clusters + 1):
+    #         kmeans = KMeans(n_clusters=k)
+    #         kmeans.fit(data)
+    #         score = silhouette_score(data, kmeans.labels_)
+    #
+    # elapsed_time = round(time.time() - start_time, 2)
+    # print("KMeans {}s".format(elapsed_time))
 
 
 if __name__ == '__main__':

@@ -34,12 +34,20 @@ class HexPoint:
         self.r = r
         self.size = size
 
+    def __eq__(self, other):
+        if not isinstance(other, HexPoint) or other is None:
+            return False
+        return (self.q == other.q and self.r == other.r and self.size == other.size)
+
     def get_neighbors(self):
         # https://www.redblobgames.com/grids/hexagons/#neighbors-axial
         directions = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
         neighbors = [HexPoint(self.q + d[0], self.r + d[1], self.size)
                      for d in directions]
         return neighbors
+
+    def is_neighbor(self, point):
+        return self.get_distance(point) == 1
 
     def to_pixel(self):
         x = self.size * (1.73 * self.q + 0.86 * self.r)

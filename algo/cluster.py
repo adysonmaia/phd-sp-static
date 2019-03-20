@@ -139,8 +139,8 @@ class Cluster(SP_Solver):
             if len(cluster) == 0:
                 continue
 
-            c_demand = reduce(lambda s, b: s + demands[b], cluster)
-            c_capacity = reduce(lambda s, b: s + capacities[b], cluster)
+            c_demand = sum([demands[b] for b in cluster])
+            c_capacity = sum([capacities[b] for b in cluster])
 
             if c_demand <= c_capacity:
                 continue
@@ -166,9 +166,24 @@ class Cluster(SP_Solver):
 
     def _get_clusters_max_instances(self, app_index, clusters):
         nb_clusters = len(clusters)
+        r_clusters = range(nb_clusters)
         max_instances = self.apps[app_index][MAX_INSTANCES]
-        max_instances = int(math.floor(max_instances / nb_clusters))
-        return [max_instances] * nb_clusters
+        users = self.users[app_index]
+        c_users = [sum([users[b] for b in c]) for c in clusters]
+        total_users = float(sum(c_users))
+
+        # print(c_users)
+        # print(app_index, nb_clusters, total_users)
+        # print(" ")
+
+        def calc_max_instances(c):
+            if total_users == 0 or nb_clusters > max_instances:
+                return 1
+            # return 1 + int(math.floor((max_instances - nb_clusters)
+            #                           * c_users[c] / total_users))
+            return int(math.floor(max_instances / nb_clusters))
+
+        return [calc_max_instances(c) for c in r_clusters]
 
     def _get_cluster_input(self, app_index, cluster, capacities, max_instances=None):
         c_input = copy.deepcopy(self.input)
