@@ -1,15 +1,12 @@
 import math
+import algo.util.constant as const
 from algo.util.metric import Metric
 
-INF = float("inf")
-POOL_SIZE = 0
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
+K1 = const.K1
+K2 = const.K2
+MAX_INSTANCES = const.MAX_INSTANCES
+REQUEST_RATE = const.REQUEST_RATE
+WORK_SIZE = const.WORK_SIZE
 
 
 class SP_Solver():

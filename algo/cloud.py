@@ -1,15 +1,9 @@
 import math
+import algo.util.constant as const
 from algo.greedy import Greedy
 from algo.util.output import Output
 
-INF = float("inf")
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
+REQUEST_RATE = const.REQUEST_RATE
 
 
 class Cloud(Greedy):

@@ -29,10 +29,11 @@ class SP2_Chromosome(SP_Chromosome):
                 nb_requests = int(math.ceil(self.users[a][b] * self.apps[a][REQUEST_RATE]))
                 self.requests += [(a, b)] * nb_requests
 
-        self.nb_genes = nb_apps * nb_nodes + len(self.requests)
+        self.nb_genes = nb_apps * (nb_nodes + 1) + len(self.requests)
 
     def gen_init_population(self):
-        return []
+        indiv = [0 for _ in range(self.nb_genes)]
+        return [indiv]
 
     def decode(self, individual):
         nb_apps = len(self.apps)
@@ -56,17 +57,21 @@ class SP2_Chromosome(SP_Chromosome):
 
         selected_nodes = []
         for a in r_apps:
-            start = a * nb_nodes
-            end = start + nb_nodes
-            priority = individual[start:end]
+            start = nb_apps + a * nb_nodes
+            end = start + nb_nodes + 1
+            priority = individual[start+1:end]
             nodes = list(r_nodes)
             nodes.sort(key=lambda v: priority[v], reverse=True)
-            max_nodes = min(nb_nodes, self.apps[a][MAX_INSTANCES])
+            percentage = individual[a]
+            nb_instances = int(math.ceil(percentage * self.apps[a][MAX_INSTANCES]))
+            max_nodes = min(nb_nodes, nb_instances)
             selected_nodes.append(nodes[:max_nodes])
+
+            # print(self.apps[a][MAX_INSTANCES], nb_instances)
 
         capacity = {(h, r): 0 for h in r_nodes for r in self.resources}
 
-        start = nb_apps * nb_nodes
+        start = nb_apps * (nb_nodes + 1)
         end = start + nb_requests
         priority = individual[start:end]
 

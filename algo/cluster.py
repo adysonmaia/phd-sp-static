@@ -3,22 +3,19 @@ import math
 from functools import reduce
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+import algo.util.constant as const
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from algo import minlp
 
 # Constants
-INF = float("inf")
+INF = const.INF
+K1 = const.K1
+K2 = const.K2
+DEADLINE = const.DEADLINE
+MAX_INSTANCES = const.MAX_INSTANCES
+REQUEST_RATE = const.REQUEST_RATE
 MAX_CLUSTERS = 10
-QUEUE_MIN_DIFF = 0.00001
-E_MAX = 1000.0
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
 
 
 class Cluster(SP_Solver):

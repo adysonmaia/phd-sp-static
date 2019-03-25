@@ -1,17 +1,14 @@
 import math
+import algo.util.constant as const
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from algo.util.brkga import Chromosome, BRKGA
 
-INF = float("inf")
+K1 = const.K1
+K2 = const.K2
+REQUEST_RATE = const.REQUEST_RATE
+DEADLINE = const.DEADLINE
 POOL_SIZE = 0
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
 
 
 class SP_Chromosome(Chromosome, SP_Solver):

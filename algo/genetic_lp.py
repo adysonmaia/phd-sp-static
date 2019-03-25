@@ -1,21 +1,21 @@
 import math
+import algo.util.constant as const
 from docplex.mp.model import Model
 from algo.util.output import Output
 from algo.util.brkga import BRKGA
 from algo.genetic import SP_Chromosome
 
-
-INF = float("inf")
-POOL_SIZE = 3
-K1 = 0
-K2 = 1
-E_MAX = 1000.0
+INF = const.INF
+K1 = const.K1
+K2 = const.K2
+CPU = const.CPU
+REQUEST_RATE = const.REQUEST_RATE
+MAX_INSTANCES = const.MAX_INSTANCES
+WORK_SIZE = const.WORK_SIZE
+DEADLINE = const.DEADLINE
+POOL_SIZE = 0
 CPLEX_TIME_LIMIT = 10
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
+E_MAX = 1000.0
 
 
 class LP_Chromosome(SP_Chromosome):

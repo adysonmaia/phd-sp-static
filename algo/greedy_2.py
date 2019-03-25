@@ -1,22 +1,22 @@
 import copy
 import math
+import algo.util.constant as const
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from docplex.mp.model import Model
 
 
 # Constants
-INF = float("inf")
+INF = const.INF
+K1 = const.K1
+K2 = const.K2
+CPU = const.CPU
+REQUEST_RATE = const.REQUEST_RATE
+MAX_INSTANCES = const.MAX_INSTANCES
+WORK_SIZE = const.WORK_SIZE
+DEADLINE = const.DEADLINE
 QUEUE_MIN_DIFF = 0.00001
-# E_MAX = 100000.0
 E_MAX = 1000.0
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
 
 
 class Greedy_2(SP_Solver):

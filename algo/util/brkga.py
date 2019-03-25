@@ -1,5 +1,4 @@
 import random
-import time
 # from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessPool
 # from pool import ThreadPool
@@ -17,8 +16,6 @@ class BRKGA:
 
         self.chromossome = chromossome
         self.nb_genes = chromossome.nb_genes
-        self.fitness = chromossome.fitness
-        self.stopping_criteria = chromossome.stopping_criteria
         self.pop_size = population_size
         self.nb_generations = nb_generations
         self.elite_proportion = elite_proportion
@@ -31,25 +28,18 @@ class BRKGA:
         else:
             self._pool = None
 
+    def _stopping_criteria(self, population):
+        return self.chromossome.stopping_criteria(population)
+
     def _gen_rand_individual(self):
-        return [random.random() for g in range(self.nb_genes)]
+        return self.chromossome.gen_rand_individual()
 
     def _crossover(self, indiv_1, indiv_2, prob_1, prob_2):
-        if prob_1 < prob_2:
-            indiv_1, indiv_2 = indiv_2, indiv_1
-            prob_1, prob_2 = prob_2, prob_1
-
-        offspring_1 = indiv_1[:self.nb_genes]
-
-        for g in range(self.nb_genes):
-            if random.random() < prob_1:
-                offspring_1[g] = indiv_2[g]
-
-        return [offspring_1]
+        return self.chromossome.crossover(indiv_1, indiv_2, prob_1, prob_2)
 
     def _set_fitness(self, individual):
         if len(individual) == self.nb_genes:
-            value = self.fitness(individual)
+            value = self.chromossome.fitness(individual)
             individual.append(value)
         return individual
 
@@ -58,11 +48,7 @@ class BRKGA:
         if self._pool:
             map_func = self._pool.map
 
-        start_time = time.time()
         population = list(map_func(self._set_fitness, population))
-        elapsed_time = time.time() - start_time
-        # print("time: {}".format(elapsed_time))
-
         population.sort(key=lambda indiv: indiv[self.nb_genes])
         return population
 
@@ -106,7 +92,7 @@ class BRKGA:
         pop = self._gen_first_population()
         try:
             for i in range(self.nb_generations):
-                if self.stopping_criteria(pop):
+                if self._stopping_criteria(pop):
                     break
                 pop = self._gen_next_population(pop)
         except KeyboardInterrupt:
@@ -119,8 +105,24 @@ class Chromosome():
     def __init__(self):
         self.nb_genes = 1
 
+    def gen_rand_individual(self):
+        return [random.random() for _ in range(self.nb_genes)]
+
     def gen_init_population(self):
         return []
+
+    def crossover(self, indiv_1, indiv_2, prob_1, prob_2):
+        if prob_1 < prob_2:
+            indiv_1, indiv_2 = indiv_2, indiv_1
+            prob_1, prob_2 = prob_2, prob_1
+
+        offspring_1 = indiv_1[:self.nb_genes]
+
+        for g in range(self.nb_genes):
+            if random.random() < prob_1:
+                offspring_1[g] = indiv_2[g]
+
+        return [offspring_1]
 
     def stopping_criteria(self, population):
         return False

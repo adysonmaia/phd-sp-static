@@ -1,20 +1,13 @@
 import copy
+import algo.util.constant as const
 from algo.util.output import Output
 from algo.util.kmedoids import KMedoids
 from algo.cluster import Cluster
 
 # Constants
-INF = float("inf")
+DEADLINE = const.DEADLINE
+MAX_INSTANCES = const.MAX_INSTANCES
 MAX_CLUSTERS = 10
-QUEUE_MIN_DIFF = 0.00001
-E_MAX = 1000.0
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
 
 
 class Cluster_2(Cluster):

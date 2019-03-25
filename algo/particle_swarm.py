@@ -1,20 +1,16 @@
 import math
+import algo.util.constant as const
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from algo.util.pso import PSO, PSO_Decoder
 
 # Constants
+K1 = const.K1
+K2 = const.K2
+REQUEST_RATE = const.REQUEST_RATE
+MAX_INSTANCES = const.MAX_INSTANCES
 X_MIN = -1.0
 X_MAX = 1.0
-INF = float("inf")
-
-K1 = 0
-K2 = 1
-CPU = "CPU"
-DEADLINE = "deadline"
-MAX_INSTANCES = "max_instances"
-REQUEST_RATE = "request_rate"
-WORK_SIZE = "work_size"
 
 
 class SP_Decoder(SP_Solver, PSO_Decoder):
