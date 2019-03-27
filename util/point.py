@@ -6,10 +6,25 @@ DEFAULT_HEX_SIZE = 1
 DEFAULT_NB_BLOBS = 5
 
 
-class Point2D:
+class Point:
+    def __init__(self):
+        pass
+
+    def get_distance(self, point):
+        return 0.0
+
+
+class Point2D(Point):
     def __init__(self, x, y):
+        Point.__init__(self)
         self.x = x
         self.y = y
+
+    def get_distance(self, point):
+        if isinstance(point, HexPoint):
+            point = point.to_pixel()
+
+        return math.sqrt((self.x - point.x) ** 2 + (self.y - point.y) ** 2)
 
     def to_hex(self, hex_size=DEFAULT_HEX_SIZE):
         # https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
@@ -18,18 +33,25 @@ class Point2D:
         return HexPoint(q, r, hex_size).round()
 
 
-class Point3D:
+class Point3D(Point):
     def __init__(self, x, y, z):
+        Point.__init__(self)
         self.x = x
         self.y = y
         self.z = z
+
+    def get_distance(self, point):
+        return math.sqrt((self.x - point.x) ** 2
+                         + (self.y - point.y) ** 2
+                         + (self.z - point.z) ** 2)
 
     def to_hex(self, hex_size=DEFAULT_HEX_SIZE):
         return HexPoint(self.x, self.z, hex_size)
 
 
-class HexPoint:
+class HexPoint(Point):
     def __init__(self, q, r, size=DEFAULT_HEX_SIZE):
+        Point.__init__(self)
         self.q = q
         self.r = r
         self.size = size
@@ -79,6 +101,9 @@ class HexPoint:
         return self
 
     def get_distance(self, point):
+        if isinstance(point, Point2D):
+            point = point.to_hex(self.size)
+
         p1 = self.to_cube()
         p2 = point.to_cube()
 
@@ -104,7 +129,7 @@ def gen_hex_map(nb_points, hex_size=DEFAULT_HEX_SIZE):
     return points
 
 
-def gen_rect_map(rows, columns, hex_size=DEFAULT_HEX_SIZE):
+def gen_hex_rect_map(rows, columns, hex_size=DEFAULT_HEX_SIZE):
     points = [HexPoint(c - math.floor(r / 2.0), r, hex_size)
               for r in range(rows)
               for c in range(columns)]

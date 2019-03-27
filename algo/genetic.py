@@ -1,57 +1,60 @@
 import math
-import algo.util.constant as const
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from algo.util.brkga import Chromosome, BRKGA
 
-K1 = const.K1
-K2 = const.K2
-REQUEST_RATE = const.REQUEST_RATE
-DEADLINE = const.DEADLINE
+INF = float("inf")
 POOL_SIZE = 0
 
 
 class SP_Chromosome(Chromosome, SP_Solver):
-    def __init__(self, input):
+    def __init__(self, input, objective=None):
         Chromosome.__init__(self)
         SP_Solver.__init__(self, input)
-        self.nb_genes = len(self.apps) * (2 * len(self.nodes) + 1)
 
-    def gen_init_population(self):
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
         nb_nodes = len(self.nodes)
         r_nodes = range(nb_nodes)
 
-        indiv = [0.0 for g in range(self.nb_genes)]
+        if objective is None:
+            objective = self.metric.get_qos_violation
+        self.objective = objective
 
-        count = 0
-        total = float(nb_apps * nb_nodes)
-        s_apps = sorted(r_apps, key=lambda a: self.apps[a][DEADLINE])
-        for a in s_apps:
-            s_nodes = sorted(r_nodes, key=lambda b: self.users[a][b],
-                             reverse=True)
-            for b in s_nodes:
-                indiv[a*nb_nodes + b] = (total - count) / total
-                count += 1
+        self.requests = []
+        for a in r_apps:
+            app = self.apps[a]
+            rate = app.request_rate
+            for b in r_nodes:
+                nb_users = self.get_nb_users(a, b)
+                nb_requests = int(math.ceil(nb_users * rate))
+                self.requests += [(a, b)] * nb_requests
 
+        self.nb_genes = nb_apps * (nb_nodes + 1) + len(self.requests)
+        # print(len(self.requests), self.nb_genes)
+
+    def gen_init_population(self):
+        indiv = [0] * self.nb_genes
         return [indiv]
 
     def stopping_criteria(self, population):
         best_indiv = population[0]
         best_value = best_indiv[self.nb_genes]
-        # print("best: {}".format(best_value))
         return best_value == 0.0
 
     def fitness(self, individual):
         result = self.decode(individual)
-        return self.metric.get_qos_violation(*result)
+        value = self.objective(*result)
+        return value
 
     def decode(self, individual):
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
         nb_nodes = len(self.nodes)
         r_nodes = range(nb_nodes)
+        nb_requests = len(self.requests)
+        r_requests = range(nb_requests)
+        cloud = self.get_cloud_index()
 
         place = {(a, h): 0
                  for h in r_nodes
@@ -60,73 +63,81 @@ class SP_Chromosome(Chromosome, SP_Solver):
                 for h in r_nodes
                 for b in r_nodes
                 for a in r_apps}
+        app_load = {(a, h): 0
+                    for h in r_nodes
+                    for a in r_apps}
 
-        capacity = {(h, r): 0 for h in r_nodes for r in self.resources}
-
-        apps_priority = {(a, b): individual[a * nb_nodes + b]
-                         for a in r_apps
-                         for b in r_nodes}
-        apps_priority = sorted(apps_priority.items(), key=lambda i: i[1],
-                               reverse=True)
-
-        for (a, b), v in apps_priority:
-            if self.users[a][b] == 0:
-                continue
+        selected_nodes = []
+        for a in r_apps:
             app = self.apps[a]
-            total_requests = int(math.ceil(self.users[a][b] * app[REQUEST_RATE]))
+            start = nb_apps + a * nb_nodes
+            end = start + nb_nodes
+            priority = individual[start:end]
+            nodes = list(r_nodes)
+            nodes.sort(key=lambda v: priority[v], reverse=True)
+            percentage = individual[a]
+            nb_instances = int(math.ceil(percentage * app.max_instances))
+            max_nodes = min(nb_nodes, nb_instances)
+            selected_nodes.append(nodes[:max_nodes])
 
-            nodes_priority = list(r_nodes)
-            nodes_priority.sort(key=lambda h:
-                                self._node_priority(individual, a, b, h),
-                                reverse=True)
+        resource_used = {(h, r): 0 for h in r_nodes for r in self.resources}
 
-            for h in nodes_priority:
-                requests = total_requests
-                while requests > 0 and total_requests > 0:
-                    fit = True
-                    resources = {}
+        start = nb_apps * (nb_nodes + 1)
+        end = start + nb_requests
+        priority = individual[start:end]
+
+        s_requests = sorted(r_requests, key=lambda v: priority[v], reverse=True)
+        for req in s_requests:
+            a, b = self.requests[req]
+            nodes = list(selected_nodes[a])
+            nodes.sort(key=lambda h: self._node_priority(individual, a, b, h, app_load))
+            nodes.append(cloud)
+            for h in nodes:
+                fit = True
+                resources = {}
+                for r in self.resources:
+                    k1, k2 = self.apps[a].get_demand(r)
+                    value = resource_used[h, r] + k1 + (1 - place[a, h]) * k2
+                    capacity = self.nodes[h].get_capacity(r)
+                    resources[r] = value
+                    fit = fit and (value <= capacity)
+
+                if fit:
+                    load[a, b, h] += 1
+                    app_load[a, h] += 1
+                    place[a, h] = 1
                     for r in self.resources:
-                        value = (capacity[h, r]
-                                 + requests * self.demand[a][r][K1]
-                                 + (1 - place[a, h]) * self.demand[a][r][K2])
-                        resources[r] = value
-                        fit = fit and (value <= self.nodes[h][r])
-
-                    if fit:
-                        load[a, b, h] += requests
-                        place[a, h] = 1
-                        total_requests -= requests
-                        requests = 0
-                        for r in self.resources:
-                            capacity[h, r] = resources[r]
-                    else:
-                        requests -= 1
-                if total_requests == 0:
+                        resource_used[h, r] = resources[r]
                     break
 
         return self.local_search(place, load)
 
-    def _node_priority(self, individual, app, bs, node):
-        nb_apps = len(self.apps)
-        nb_nodes = len(self.nodes)
+    def _node_priority(self, indiv, a, b, h, app_load):
+        app = self.apps[a]
+        work_size = app.work_size
+        cpu_k1, cpu_k2 = app.get_cpu_demand()
 
-        cloud_delay = self.net_delay[app][bs][nb_nodes - 1]
-        node_delay = self.net_delay[app][bs][node]
-        delay = (cloud_delay - node_delay) / cloud_delay
+        proc_delay = 0.0
+        net_delay = self.get_net_delay(a, b, h)
 
-        weight = round(individual[nb_apps * nb_nodes + app], 2)
-        value = individual[nb_apps * (nb_nodes + 1) + app * nb_nodes + node]
+        node_load = 1 + app_load[a, h]
+        proc_delay_divisor = float(node_load * (cpu_k1 - work_size) + cpu_k2)
+        if proc_delay_divisor > 0.0:
+            proc_delay = work_size / proc_delay_divisor
+        else:
+            proc_delay = INF
 
-        return weight * value + (1.0 - weight) * delay
+        return net_delay + proc_delay
 
 
-def solve_sp(input,
-             nb_generations=200,
-             population_size=100,
-             elite_proportion=0.4,
-             mutant_proportion=0.3):
+def solve(input,
+          nb_generations=100,
+          population_size=100,
+          elite_proportion=0.4,
+          mutant_proportion=0.3,
+          objective=None):
 
-    chromossome = SP_Chromosome(input)
+    chromossome = SP_Chromosome(input, objective)
     genetic = BRKGA(chromossome,
                     nb_generations=nb_generations,
                     population_size=population_size,

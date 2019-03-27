@@ -13,8 +13,8 @@ class Output:
         self.load = load
         return self
 
+    def get_vars(self):
+        return self.place, self.load
+
     def get_qos_violation(self):
         return self.metric.get_qos_violation(self.place, self.load)
-
-    def get_active_nodes(self):
-        return self.metric.get_active_nodes(self.place, self.load)

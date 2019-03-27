@@ -1,4 +1,5 @@
 import random
+import time
 # from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessPool
 # from pool import ThreadPool
@@ -48,8 +49,11 @@ class BRKGA:
         if self._pool:
             map_func = self._pool.map
 
+        # start_time = time.time()
         population = list(map_func(self._set_fitness, population))
         population.sort(key=lambda indiv: indiv[self.nb_genes])
+        # elapsed_time = time.time() - start_time
+        # print("time: {}".format(elapsed_time))
         return population
 
     def _gen_first_population(self):

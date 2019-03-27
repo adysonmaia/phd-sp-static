@@ -1,12 +1,5 @@
 import math
-import algo.util.constant as const
 from algo.util.metric import Metric
-
-K1 = const.K1
-K2 = const.K2
-MAX_INSTANCES = const.MAX_INSTANCES
-REQUEST_RATE = const.REQUEST_RATE
-WORK_SIZE = const.WORK_SIZE
 
 
 class SP_Solver():
@@ -14,11 +7,23 @@ class SP_Solver():
         self.input = input
         self.nodes = input.nodes
         self.apps = input.apps
-        self.users = input.users
         self.resources = input.resources
-        self.net_delay = input.net_delay
-        self.demand = input.apps_demand
         self.metric = Metric(input)
+
+    def get_cloud_index(self):
+        return self.input.get_cloud_index()
+
+    def get_core_index(self):
+        return self.input.get_core_index()
+
+    def get_net_delay(self, app_index, node_1_index, node_2_index):
+        app = self.apps[app_index]
+        node_1 = self.nodes[node_1_index]
+        node_2 = self.nodes[node_2_index]
+        return app.get_net_delay(node_1, node_2)
+
+    def get_nb_users(self, app_index, node_index):
+        return self.apps[app_index].get_users(self.nodes[node_index])
 
     def solve(self):
         r_nodes = range(len(self.nodes))
@@ -37,22 +42,25 @@ class SP_Solver():
         r_apps = range(len(self.apps))
         nb_nodes = len(self.nodes)
         r_nodes = range(nb_nodes)
-        cloud = nb_nodes - 1
+        cloud = self.get_cloud_index()
 
         for a in r_apps:
             app = self.apps[a]
             instances = [h for h in r_nodes if place[a, h] > 0]
-            if len(instances) <= app[MAX_INSTANCES]:
+            if len(instances) <= app.max_instances:
                 continue
 
             if not place[a, cloud]:
                 place[a, cloud] = 1
                 instances.append(cloud)
 
-            def node_load(h): return sum([load[a, b, h] for b in r_nodes])
-            instances.sort(key=node_load, reverse=True)
+            def node_load(h):
+                return sum([load[a, b, h] for b in r_nodes])
 
-            while len(instances) > app[MAX_INSTANCES]:
+            # instances.sort(key=node_load, reverse=True)
+            instances.sort(key=node_load)
+
+            while len(instances) > app.max_instances:
                 h = instances.pop()
                 if h == cloud:
                     instances.insert(0, cloud)
@@ -70,13 +78,14 @@ class SP_Solver():
 
         for a in r_apps:
             app = self.apps[a]
-            users = self.users[a]
-
             nb_instances = sum([place[a, h] for h in r_nodes])
-            if nb_instances > app[MAX_INSTANCES] or nb_instances == 0:
+            if nb_instances > app.max_instances or nb_instances == 0:
+                print(a, nb_instances, app.max_instances)
                 return False
             for b in r_nodes:
-                requests = int(math.ceil(users[b] * app[REQUEST_RATE]))
+                rate = app.request_rate
+                nb_users = self.get_nb_users(a, b)
+                requests = int(math.ceil(nb_users * rate))
                 total_load = int(sum([load[a, b, h] for h in r_nodes]))
                 if requests != total_load:
                     return False
@@ -85,16 +94,17 @@ class SP_Solver():
                         return False
 
         for h in r_nodes:
+            node = self.nodes[h]
             for r in self.resources:
                 demand = 0
                 for a in r_apps:
-                    k1 = self.demand[a][r][K1]
-                    k2 = self.demand[a][r][K2]
+                    app = self.apps[a]
+                    k1, k2 = app.get_demand(r)
                     node_load = int(sum([load[a, b, h] for b in r_nodes]))
                     demand += float(place[a, h] * (node_load * k1 + k2))
                     if node_load > 0 and not place[a, h]:
                         return False
-                if demand > self.nodes[h][r]:
+                if demand > node.get_capacity(r):
                     return False
 
         return True

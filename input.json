@@ -1,45 +1,114 @@
 {
     "map": {
         "format": "rectangle",
-        "distribution": ["uniform", "blob", "circle", "moon"]
+        "distribution": ["uniform", "blob"]
     },
+    "resources": [
+        {"name": "CPU", "unit": "MIPMS", "type": "float"},
+        {"name": "DISK", "unit": "MB", "type": "int"},
+        {"name": "RAM", "unit": "MB", "type": "int"}
+    ],
     "nodes": {
-        "bs": {
-            "CPU": [50.0, 100.0],
-            "STORAGE": [1000.0, 2000.0]
+        "BS": {
+            "type": "BS",
+            "capacity": {
+                "CPU": [50, 100],
+                "DISK": [8000, 16000],
+                "RAM": [1000, 4000]
+            },
+            "power": {
+                "min": [10, 20],
+                "max": [20, 50]
+            },
+            "cost": {
+                "CPU": {"a": [0.1, 0.2], "b": [0.1, 0.2]},
+                "DISK": {"a": [0.1, 0.2], "b": [0.1, 0.2]},
+                "RAM": {"a": [0.1, 0.2], "b": [0.1, 0.2]}
+            }
         },
-        "core": {
-            "CPU": 200.0,
-            "STORAGE": 10000.0
+        "CORE": {
+            "type": "CORE",
+            "capacity": {
+                "CPU": 200,
+                "DISK": 32000,
+                "RAM": 8000
+            },
+            "power": {
+                "min": 50,
+                "max": 100
+            },
+            "cost": {
+                "CPU": {"a": 0.05, "b": 0.05},
+                "DISK": {"a": 0.05, "b": 0.05},
+                "RAM": {"a": 0.05, "b": 0.05}
+            }
+        },
+        "CLOUD": {
+            "type": "CLOUD",
+            "capacity": {
+                "CPU": "INF",
+                "DISK": "INF",
+                "RAM": "INF"
+            },
+            "power": {
+                "min": 200,
+                "max": 400
+            },
+            "cost": {
+                "CPU": {"a": 0.025, "b": 0.025},
+                "DISK": {"a": 0.025, "b": 0.025},
+                "RAM": {"a": 0.025, "b": 0.025}
+            }
         }
     },
     "apps": [
         {
-            "type": "embb",
+            "type": "eMBB",
             "users": 0.2,
-            "deadline": [10, 50],
-            "request_rate": [0.02, 0.01],
+            "deadline": [10, 100],
+            "request_rate": [0.001, 0.01],
             "work_size": [1, 10],
-            "storage": [1, 50],
-            "net_delay": {"bs_bs": [1, 5], "bs_core": [1, 5], "core_cloud": 10}
+            "demand": {
+                "DISK": {"a": [1, 50], "b": [1, 50]},
+                "RAM": {"a": [1, 50], "b": [1, 50]}
+            },
+            "network_delay": {
+                "BS_BS": [1, 5],
+                "BS_CORE": [1, 5],
+                "CORE_CLOUD": 10
+            }
         },
         {
-            "type": "urllc",
+            "type": "URLLC",
             "users": 0.1,
             "deadline": [1, 10],
-            "request_rate": [0.02, 0.01],
+            "request_rate": [0.02, 0.2],
             "work_size": [1, 5],
-            "storage": [1, 10],
-            "net_delay": {"bs_bs": [1, 5], "bs_core": [1, 5], "core_cloud": 10}
+            "demand": {
+                "DISK": {"a": [1, 10], "b": [1, 10]},
+                "RAM": {"a": [1, 10], "b": [1, 10]}
+            },
+            "network_delay": {
+                "BS_BS": [1, 5],
+                "BS_CORE": [1, 5],
+                "CORE_CLOUD": 10
+            }
         },
         {
-            "type": "mmtc",
+            "type": "mMTC",
             "users": 0.7,
-            "deadline": [50, 1000],
-            "request_rate": [0.001, 0.01],
+            "deadline": [100, 1000],
+            "request_rate": [0.0002, 0.001],
             "work_size": [1, 5],
-            "storage": [1, 10],
-            "net_delay": {"bs_bs": [1, 5], "bs_core": [1, 5], "core_cloud": 10}
+            "demand": {
+                "DISK": {"a": [1, 10], "b": [1, 10]},
+                "RAM": {"a": [1, 10], "b": [1, 10]}
+            },
+            "network_delay": {
+                "BS_BS": [1, 5],
+                "BS_CORE": [1, 5],
+                "CORE_CLOUD": 10
+            }
         }
     ]
 }

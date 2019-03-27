@@ -1,10 +1,31 @@
 import random
 import math
 import json
-import pprint
-from util import point, path
+from util import point, path, model
 
 INF = float("inf")
+
+
+def get_int_param(param):
+    if isinstance(param, list) or isinstance(param, tuple):
+        param = random.randrange(*param)
+    if param == "INF":
+        param = INF
+    else:
+        param = int(param)
+    return param
+
+
+def get_float_param(param, precision=None):
+    if isinstance(param, list) or isinstance(param, tuple):
+        param = random.uniform(*param)
+    if param == "INF":
+        param = INF
+    else:
+        param = float(param)
+    if precision is not None:
+        param = round(param, precision)
+    return param
 
 
 class Input:
@@ -12,217 +33,271 @@ class Input:
         with open(file) as json_data:
             self.input_data = json.load(json_data)
 
-        # pp = pprint.PrettyPrinter(indent=2)
-        # pp.pprint(self.input_data)
+    def get_cloud_index(self):
+        return len(self.nodes) - 1
+
+    def get_core_index(self):
+        return len(self.nodes) - 2
+
+    def get_cpu_resource(self):
+        return self.resources["CPU"]
 
     def gen_rand_data(self, nb_nodes, nb_apps, nb_users):
         self.nb_nodes = nb_nodes
         self.nb_apps = nb_apps
         self.nb_users = nb_users
 
-        self._gen_rand_apps()
-        self.apps_demand = [a["demand"] for a in self.apps]
-        self._gen_net_graphs()
-        self.net_delay = [path.calc_net_delay(g) for g in self.net_graphs]
-        self._gen_nodes_capacity()
-        self.resources = list(self.nodes[0].keys())
-        self._gen_rand_users()
+        self._gen_resources()
+        self._gen_apps()
+        self._gen_nodes()
+        self._gen_network()
+        self._gen_users()
 
-        return self.nodes, self.apps, self.users, self.resources, self.net_delay, self.apps_demand
+        return self
 
-    def _gen_rand_apps(self):
-        apps_data = self.input_data["apps"]
-        apps = []
-        nb_app_types = len(apps_data)
-        nb_apps_per_type = [self.nb_apps // nb_app_types] * nb_app_types
-        nb_apps_per_type[0] += self.nb_apps % nb_app_types
+    def _gen_resources(self):
+        data = self.input_data["resources"]
+        self.resources = {}
 
-        nb_users_per_type = [self.nb_users * a["users"] for a in apps_data]
-        nb_users_per_type[0] += self.nb_users - sum(nb_users_per_type)
+        for r in data:
+            resouce = model.Resource()
+            key = r["name"]
+            resouce.name = key
+            resouce.unit = r["unit"]
+            if "type" in r:
+                resouce.type = r["type"]
+            if "precision" in r:
+                resouce.precision = int(r["precision"])
 
-        for t in range(nb_app_types):
-            data = apps_data[t]
-            for i in range(nb_apps_per_type[t]):
-                deadline = data["deadline"]
-                if isinstance(deadline, list) or isinstance(deadline, tuple):
-                    deadline = round(random.uniform(*deadline), 2)
+            self.resources[key] = resouce
 
-                work_size = data["work_size"]
-                if isinstance(work_size, list) or isinstance(work_size, tuple):
-                    work_size = random.randrange(*work_size)
+        return self
 
-                cpu_demand_1 = work_size + 1
-                cpu_demand_2 = random.randrange(int(work_size + 1))
+    def _gen_apps(self):
+        data = self.input_data["apps"]
+        nb_types = len(data)
 
-                storage_demand_1 = data["storage"]
-                storage_demand_2 = data["storage"]
-                if isinstance(storage_demand_1, list) or isinstance(storage_demand_1, tuple):
-                    storage_demand_1 = random.randrange(*storage_demand_1)
-                    storage_demand_2 = random.randrange(*storage_demand_2)
+        type_nb_apps = [self.nb_apps // nb_types] * nb_types
+        type_nb_apps[0] += self.nb_apps % nb_types
 
-                request_rate = data["request_rate"]
-                if isinstance(request_rate, list) or isinstance(request_rate, tuple):
-                    request_rate = round(random.uniform(*request_rate), 4)
+        type_nb_users = [int(math.floor(self.nb_users * a["users"])) for a in data]
+        type_nb_users[0] += self.nb_users - sum(type_nb_users)
 
-                max_instances = random.randrange(1, self.nb_nodes + 1)
+        app_id = 0
+        self.apps = []
+        self.app_types = {}
+        for type_index in range(nb_types):
+            type_data = data[type_index]
 
-                users = nb_users_per_type[t] // nb_apps_per_type[t]
-                if i == 0:
-                    users += nb_users_per_type[t] % nb_apps_per_type[t]
+            type = model.AppType()
+            type.nb_apps = type_nb_apps[type_index]
+            type.nb_users = type_nb_users[type_index]
+            type.name = type_data["type"]
+            type.user_proportion = type_data["users"]
+            type.network = type_data["network_delay"]
+            self.app_types[type.name] = type
 
-                net_delay = data["net_delay"]
-                app = {"deadline": deadline,
-                       "max_instances": max_instances,
-                       "request_rate": request_rate,
-                       "work_size": work_size,
-                       "users": int(users),
-                       "demand": {"CPU": (cpu_demand_1, cpu_demand_2),
-                                  "STORAGE": (storage_demand_1, storage_demand_2)},
-                       "net_delay": net_delay}
-                apps.append(app)
+            if type.nb_apps <= 0 or type.nb_users <= 0:
+                continue
 
-        self.apps = apps
-        return apps
+            app_nb_users = [type.nb_users // type.nb_apps] * type.nb_apps
+            app_nb_users[0] += type.nb_users % type.nb_apps
 
-    def _gen_net_graphs(self):
+            for app_index in range(type.nb_apps):
+                app = self._gen_app(type_data)
+                app.id = app_id
+                app.nb_users = app_nb_users[app_index]
+                self.apps.append(app)
+
+                app_id += 1
+
+        return self
+
+    def _gen_app(self, data):
+        app = model.App()
+
+        app.type = data["type"]
+        app.deadline = get_float_param(data["deadline"], 4)
+        app.work_size = get_int_param(data["work_size"])
+        app.request_rate = get_float_param(data["request_rate"], 4)
+
+        max_instances = 0
+        if "max_instances" in data:
+            percentage = get_float_param(data["max_instances"])
+            max_instances = int(round(percentage * self.nb_nodes))
+            max_instances = max(1, max_instances)
+        else:
+            max_instances = random.randint(1, self.nb_nodes)
+        app.max_instances = max_instances
+
+        # TODO: improve CPU demand based on WORK SIZE
+        app.demand = {}
+        for r_name, r in self.resources.items():
+            r_demand = {"a": 0, "b": 0}
+
+            if r_name == "CPU":
+                r_demand["a"] = app.work_size
+                r_demand["b"] = round(app.work_size / app.deadline) + 1
+
+            if r_name in data["demand"]:
+                r_data = data["demand"][r_name]
+                for key in r_demand.keys():
+                    if key not in r_data:
+                        continue
+
+                    value = r_data[key]
+                    if r.type == "int":
+                        value = get_int_param(value)
+                    elif r.type == "float":
+                        value = get_float_param(value, r.precision)
+                    r_demand[key] = value
+
+            app.demand[r.name] = r_demand
+
+        return app
+
+    def _gen_nodes(self):
         map_data = self.input_data["map"]
         nb_bs = self.nb_nodes - 2
+
+        bs_points = []
         if map_data["format"] == "rectangle":
             rows = int(math.floor(math.sqrt(nb_bs)))
             columns = rows
-            bs = point.gen_rect_map(rows, columns)
+            bs_points = point.gen_hex_rect_map(rows, columns)
         else:
-            bs = point.gen_hex_map(nb_bs)
+            bs_points = point.gen_hex_map(nb_bs)
 
-        e_bs = list(enumerate(bs))
-        core_index = self.nb_nodes - 2
-        cloud_index = self.nb_nodes - 1
-        r_apps = range(self.nb_apps)
-        r_nodes = range(self.nb_nodes)
+        node_id = 0
+        self.nodes = []
 
-        graph = [[[INF for j in r_nodes]
-                  for i in r_nodes] for a in r_apps]
+        bs_data = self.input_data["nodes"]["BS"]
+        for bs_index in range(nb_bs):
+            node = self._gen_node(bs_data)
+            node.id = node_id
+            node.point = bs_points[bs_index]
+            self.nodes.append(node)
+            node_id += 1
 
-        for a in r_apps:
-            delay = self.apps[a]["net_delay"]["core_cloud"]
-            if isinstance(delay, list) or isinstance(delay, tuple):
-                delay = random.uniform(*delay)
-            graph[a][core_index][core_index] = 0.0
-            graph[a][cloud_index][cloud_index] = 0.0
-            graph[a][core_index][cloud_index] = delay
-            graph[a][cloud_index][core_index] = delay
+        types = ["CORE", "CLOUD"]
+        for type in types:
+            node = self._gen_node(self.input_data["nodes"][type])
+            node.id = node_id
+            self.nodes.append(node)
+            node_id += 1
 
-        for b_index, b in e_bs:
-            for a in r_apps:
-                delay = self.apps[a]["net_delay"]["bs_core"]
-                if isinstance(delay, list) or isinstance(delay, tuple):
-                    delay = random.uniform(*delay)
-                graph[a][b_index][b_index] = 0.0
-                graph[a][b_index][core_index] = delay
-                graph[a][core_index][b_index] = delay
+        return self
 
-            for n_index, n in e_bs:
-                if b.is_neighbor(n):
-                    for a in r_apps:
-                        delay = self.apps[a]["net_delay"]["bs_bs"]
-                        if isinstance(delay, list) or isinstance(delay, tuple):
-                            delay = random.uniform(*delay)
-                        graph[a][b_index][n_index] = delay
-                        graph[a][n_index][b_index] = delay
+    def _gen_node(self, data):
+        node = model.Node()
+        node.type = data["type"]
 
-        self.bs_map = bs
-        self.net_graphs = graph
-        return graph
+        power = {"min": 0, "max": 0}
+        for key in power:
+            power[key] = get_float_param(data["power"][key], 2)
+        node.power_consumption = power
 
-    def _gen_nodes_capacity(self):
-        def _get_capacity(capacity):
-            result = {}
-            for key, value in capacity.items():
-                if isinstance(value, list) or isinstance(value, tuple):
-                    value = round(random.uniform(*value), 4)
-                result[key] = value
-            return result
+        node.cost = {}
+        node.capacity = {}
+        for r_name, r in self.resources.items():
+            r_cost = {"a": 0, "b": 0}
+            r_capacity = 0
 
-        nodes_data = self.input_data["nodes"]
-        bs_capacity = nodes_data["bs"]
-        core_capacity = nodes_data["core"]
+            if r_name in data["cost"]:
+                r_data = data["cost"][r_name]
+                for key in r_cost.keys():
+                    if key not in r_data:
+                        continue
+                    r_cost[key] = get_float_param(r_data[key])
 
+            if r_name in data["capacity"]:
+                r_capacity = data["capacity"][r_name]
+                if r.type == "int":
+                    r_capacity = get_int_param(r_capacity)
+                elif r.type == "float":
+                    r_capacity = get_float_param(r_capacity, r.precision)
+
+            node.cost[r.name] = r_cost
+            node.capacity[r.name] = r_capacity
+
+        return node
+
+    def _gen_network(self):
+        nb_nodes = len(self.nodes)
+        r_nodes = range(nb_nodes)
+
+        for app in self.apps:
+            app_type = self.app_types[app.type]
+            net_data = app_type.network
+
+            graph = [[INF for j in r_nodes] for i in r_nodes]
+            for i in r_nodes:
+                node_i = self.nodes[i]
+                for j in range(i, nb_nodes):
+                    node_j = self.nodes[j]
+                    delay = INF
+
+                    if i == j:
+                        delay = 0
+                    elif node_i.type != node_j.type or node_i.is_neighbor(node_j):
+                        key_1 = node_i.type + "_" + node_j.type
+                        key_2 = node_j.type + "_" + node_i.type
+                        if key_1 in net_data:
+                            delay = get_float_param(net_data[key_1])
+                        elif key_2 in net_data:
+                            delay = get_float_param(net_data[key_2])
+
+                    graph[i][j] = delay
+                    graph[j][i] = delay
+
+            shortest_delay = path.calc_net_delay(graph)
+            app.net_delay = {}
+            for i in r_nodes:
+                id_i = self.nodes[i].id
+                for j in r_nodes:
+                    id_j = self.nodes[j].id
+                    delay = round(shortest_delay[i][j], 4)
+                    app.net_delay[(id_i, id_j)] = delay
+
+        return self
+
+    def _gen_users(self):
         nb_bs = self.nb_nodes - 2
-        capacities = [_get_capacity(bs_capacity) for _ in range(nb_bs)]
-        capacities.append(_get_capacity(core_capacity))
-        resources = core_capacity.keys()
-        cloud_capacity = {r: INF for r in resources}
-        capacities.append(cloud_capacity)
+        map_format = self.input_data["map"]['format']
+        distributions = self.input_data["map"]["distribution"]
 
-        # nb_bs = self.nb_nodes - 2
-        # capacities = [bs_capacity for b in range(nb_bs)]
-        # capacities.append(core_capacity)
-        # resources = core_capacity.keys()
-        # cloud_capacity = {r: INF for r in resources}
-        # capacities.append(cloud_capacity)
-
-        self.nodes = capacities
-        return capacities
-
-    def _gen_rand_users(self):
-        nb_bs = self.nb_nodes - 2
-        map_data = self.input_data["map"]
-        user_distributions = map_data["distribution"]
-
-        if map_data["format"] == "rectangle":
+        bound_box = None
+        if map_format == "rectangle":
             bound_box = point.calc_rect_bound_box(nb_bs)
         else:
             bound_box = point.calc_hex_bound_box(nb_bs)
 
-        r_apps = range(self.nb_apps)
-        users = [[0 for _ in range(self.nb_nodes)] for _ in r_apps]
-        nodes = list(enumerate(self.bs_map))
-        points = []
-        for a in r_apps:
-            nb_users = self.apps[a]["users"]
-            distribution = random.choice(user_distributions)
-            if distribution == "blob":
-                points = point.gen_2d_points_blob(nb_users, bound_box)
-            elif distribution == "circle":
-                points = point.gen_2d_points_circle(nb_users, bound_box)
-            elif distribution == "moon":
-                points = point.gen_2d_points_moon(nb_users, bound_box)
-            else:  # uniform
-                points = point.gen_2d_points_uniform(nb_users, bound_box)
-
+        bs_nodes = list(filter(lambda n: n.type == "BS", self.nodes))
+        for app in self.apps:
+            points = self._gen_points(app.nb_users, distributions, bound_box)
+            app.users = {n.id: 0 for n in self.nodes}
             for p in points:
-                # print("[{}, {}],".format(p.x, p.y))
-                nodes.sort(key=lambda item: item[1].get_distance(p.to_hex()))
-                index, node = nodes[0]
-                users[a][index] += 1
+                min_dist = INF
+                min_bs = None
+                for bs in bs_nodes:
+                    dist = INF
+                    if bs.point is not None:
+                        dist = p.get_distance(bs.point)
+                    if dist < min_dist:
+                        min_dist = dist
+                        min_bs = bs
 
-        self.users = users
-        self.users_map = points
-        return users
+                app.users[min_bs.id] += 1
 
-    # def _gen_rand_users(self):
-    #     r_apps = range(self.nb_apps)
-    #     nb_bs = self.nb_nodes - 2
-    #     users = [[0 for _ in range(self.nb_nodes)] for _ in r_apps]
-    #     for a in r_apps:
-    #         nb_users = self.apps[a]["users"]
-    #         nodes = np.random.randint(nb_bs, size=int(nb_users))
-    #         for n in nodes:
-    #             users[a][n] += 1
-    #
-    #     self.users = users
-    #     print(self.users)
-    #     return users
+    def _gen_points(self, nb_points, distributions, bound_box):
+        distribution = random.choice(distributions)
+        if distribution == "blob":
+            points = point.gen_2d_points_blob(nb_points, bound_box)
+        elif distribution == "circle":
+            points = point.gen_2d_points_circle(nb_points, bound_box)
+        elif distribution == "moon":
+            points = point.gen_2d_points_moon(nb_points, bound_box)
+        else:  # uniform
+            points = point.gen_2d_points_uniform(nb_points, bound_box)
 
-
-# def print_net_graph(graph):
-#     print "\n"
-#     size = len(graph)
-#     for i in range(size):
-#         for j in range(size):
-#             if(graph[i][j] == INF):
-#                 print "%7s" % ("INF"),
-#             else:
-#                 print "%7d\t" % (graph[i][j]),
-#             if j == size-1:
-#                 print ""
+        return points

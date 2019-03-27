@@ -1,27 +1,22 @@
 import math
-import algo.util.constant as const
-from algo.greedy import Greedy
+from algo.util.sp import SP_Solver
 from algo.util.output import Output
 
-REQUEST_RATE = const.REQUEST_RATE
 
-
-class Cloud(Greedy):
+class Cloud(SP_Solver):
 
     def __init__(self, input):
-        Greedy.__init__(self, input)
+        SP_Solver.__init__(self, input)
 
     def solve(self):
-        nb_nodes = len(self.nodes)
-        r_nodes = range(nb_nodes)
-        nb_apps = len(self.apps)
-        r_apps = range(nb_apps)
+        r_nodes = range(len(self.nodes))
+        r_apps = range(len(self.apps))
 
-        requests = [[int(math.ceil(self.users[a][b] * self.apps[a][REQUEST_RATE]))
-                     for b in r_nodes]
-                    for a in r_apps]
+        requests = [[int(math.ceil(app.get_users(node) * app.request_rate))
+                     for node in self.nodes]
+                    for app in self.apps]
 
-        cloud = nb_nodes - 1
+        cloud = self.get_cloud_index()
         place = {(a, h): 0 if h != cloud else 1
                  for a in r_apps
                  for h in r_nodes}
@@ -33,7 +28,7 @@ class Cloud(Greedy):
         return place, load
 
 
-def solve_sp(input):
+def solve(input):
     solver = Cloud(input)
     result = solver.solve()
     return Output(input).set_solution(*result)
