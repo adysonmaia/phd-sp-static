@@ -79,7 +79,7 @@
             "network_delay": {
                 "BS_BS": [1, 5],
                 "BS_CORE": [1, 5],
-                "CORE_CLOUD": 10
+                "CORE_CLOUD": [10, 15]
             }
         },
         {
@@ -94,9 +94,9 @@
                 "RAM": {"a": [1, 10], "b": [1, 10]}
             },
             "network_delay": {
-                "BS_BS": [1, 5],
-                "BS_CORE": [1, 5],
-                "CORE_CLOUD": 10
+                "BS_BS": [1, 2],
+                "BS_CORE": [1, 2],
+                "CORE_CLOUD": [10, 12]
             }
         },
         {
@@ -111,9 +111,9 @@
                 "RAM": {"a": [1, 10], "b": [1, 10]}
             },
             "network_delay": {
-                "BS_BS": [1, 5],
-                "BS_CORE": [1, 5],
-                "CORE_CLOUD": 10
+                "BS_BS": [1, 2],
+                "BS_CORE": [1, 2],
+                "CORE_CLOUD": [10, 12]
             }
         }
     ]

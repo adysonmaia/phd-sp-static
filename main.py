@@ -106,7 +106,7 @@ def exp_1(args=[]):
                         mo_versions = [("v1", algo.genetic_mo), ("v2", algo.genetic_mo_2)]
                         for s_version, solver in mo_versions:
                             s_params = {"input": config, "objectives": obj_func}
-                            s_title = "cloud"
+                            s_title = "genetic_mo"
                             row = {"solver": solver, "params": s_params, "title": s_title, "version": s_version}
                             solvers.append(row)
 
@@ -129,7 +129,7 @@ def exp_2(args=[]):
     random.seed(1)
     np.random.seed(1)
 
-    nb_nodes = 21
+    nb_nodes = 27
     nb_apps = 10
     nb_users = 1000
     if len(args) >= 3:
@@ -166,106 +166,6 @@ def exp_2(args=[]):
         for m_title, m_func in metrics:
             value = m_func(*solution.get_vars())
             print("\t {:15} : {}".format(m_title, value))
-
-
-def exp_3(args=[]):
-    random.seed()
-    np.random.seed()
-
-    pool = ProcessPool(4)
-
-    r_nodes = [27]
-    r_apps = range(10, 51, 10)
-    r_users = range(1000, 10001, 3000)
-    nb_runs = 30
-
-    objectives = [("max_e", "get_qos_violation"),
-                  ("avg_rt", "get_avg_response_time"),
-                  ("cost", "get_cost")]
-
-    metrics = [("max_e", "get_qos_violation"),
-               ("avg_e", "get_avg_deadline_violation"),
-               ("deadline_sr", "get_deadline_satisfaction"),
-               ("avg_rt", "get_avg_response_time"),
-               ("max_usage", "get_max_resource_usage"),
-               ("avg_usage", "get_avg_resource_usage"),
-               ("power", "get_power_comsumption"),
-               ("cost", "get_cost")]
-
-    def exec_metrics(solution, output):
-        for m_title, m_name in metrics:
-            m_func = getattr(solution.metric, m_name)
-            value = m_func(*solution.get_vars())
-            output[m_title] = value
-
-        return output
-
-    def exec_solver(kwds):
-        solver = kwds["solver"]
-        params = kwds["params"]
-        title = kwds["title"]
-        version = kwds["version"]
-        start_time = time.time()
-        solution = solver.solve(**params)
-        elapsed_time = time.time() - start_time
-        output = {"nodes": nb_nodes,
-                  "apps": nb_apps,
-                  "users": nb_users,
-                  "run": run,
-                  "solution": title,
-                  "version": version,
-                  "time": elapsed_time
-                  }
-
-        return exec_metrics(solution, output)
-
-    def write_output(output):
-        print("{} {} | nodes: {} | apps: {} | users: {} | run: {}".format(
-               output["solution"], output["version"], output["nodes"],
-               output["apps"], output["users"], output["run"]
-        ))
-        print("\t {:15} : {}s".format("time", output["time"]))
-
-        for m_title, m_name in metrics:
-            print("\t {:15} : {}".format(m_title, output[m_title]))
-        print(" ")
-
-    field_names = ["nodes", "apps", "users", "run", "solution", "version", "time"]
-    for m_title, m_func_name in metrics:
-        field_names.append(m_title)
-
-    config = input.Input("input.json")
-
-    for nb_nodes in r_nodes:
-        for nb_apps in r_apps:
-            for nb_users in r_users:
-                for run in range(nb_runs):
-                    config.gen_rand_data(nb_nodes, nb_apps, nb_users)
-                    metric = Metric(config)
-                    solvers = []
-
-                    solver_params = {"input": config}
-                    row = {"solver": algo.cloud, "params": solver_params, "title": "cloud", "version": ""}
-                    solvers.append(row)
-
-                    obj_func = [getattr(metric, obj[1]) for obj in objectives]
-                    mo_versions = [("v1", algo.genetic_mo), ("v2", algo.genetic_mo_2)]
-                    for version, solver in mo_versions:
-                        solver_params = {"input": config, "objectives": obj_func}
-                        row = {"solver": solver, "params": solver_params, "title": "genetic_mo", "version": version}
-                        solvers.append(row)
-
-                    for obj_title, obj_func_name in objectives:
-                        obj_func = getattr(metric, obj_func_name)
-                        solver = algo.genetic
-                        solver_params = {"input": config, "objective": obj_func}
-                        row = {"solver": solver, "params": solver_params, "title": "genetic", "version": obj_title}
-                        solvers.append(row)
-
-                    solutions = pool.uimap(exec_solver, solvers)
-                    for solution in solutions:
-                        write_output(solution)
-                    print(" -- ")
 
 
 if __name__ == '__main__':

@@ -230,7 +230,11 @@ class Input:
 
         for app in self.apps:
             app_type = self.app_types[app.type]
-            net_data = app_type.network
+            data = app_type.network
+            net_data = {}
+
+            for key, value in data.items():
+                net_data[key] = get_float_param(data[key])
 
             graph = [[INF for j in r_nodes] for i in r_nodes]
             for i in r_nodes:
@@ -245,9 +249,9 @@ class Input:
                         key_1 = node_i.type + "_" + node_j.type
                         key_2 = node_j.type + "_" + node_i.type
                         if key_1 in net_data:
-                            delay = get_float_param(net_data[key_1])
+                            delay = net_data[key_1]
                         elif key_2 in net_data:
-                            delay = get_float_param(net_data[key_2])
+                            delay = net_data[key_2]
 
                     graph[i][j] = delay
                     graph[j][i] = delay
