@@ -120,6 +120,7 @@ class Input:
         app.deadline = get_float_param(data["deadline"], 4)
         app.work_size = get_int_param(data["work_size"])
         app.request_rate = get_float_param(data["request_rate"], 4)
+        app.availability = get_float_param(data["availability"], 4)
 
         max_instances = 0
         if "max_instances" in data:
@@ -191,6 +192,7 @@ class Input:
     def _gen_node(self, data):
         node = model.Node()
         node.type = data["type"]
+        node.availability = get_float_param(data["availability"], 4)
 
         power = {"min": 0, "max": 0}
         for key in power:

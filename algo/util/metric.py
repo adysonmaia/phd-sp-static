@@ -223,3 +223,43 @@ class Metric():
 
     def get_cost(self, place, load):
         return self.get_overall_cost(place, load)
+
+    def get_avg_availability(self, place, load):
+        nb_apps = len(self.apps)
+        r_apps = range(nb_apps)
+        r_nodes = range(len(self.nodes))
+
+        avg = 0.0
+        for a in r_apps:
+            app = self.apps[a]
+            availability = 1.0
+            for h in r_nodes:
+                node = self.nodes[h]
+                if not place[a, h]:
+                    continue
+                availability *= (1.0 - app.availability) * (1.0 - node.availability)
+            availability = 1.0 - availability
+            avg += availability
+
+        if nb_apps > 0:
+            avg = avg / nb_apps
+        return avg
+
+    def get_max_failure(self, place, load):
+        nb_apps = len(self.apps)
+        r_apps = range(nb_apps)
+        r_nodes = range(len(self.nodes))
+
+        max_failure = 0.0
+        for a in r_apps:
+            app = self.apps[a]
+            failure = 1.0
+            for h in r_nodes:
+                node = self.nodes[h]
+                if not place[a, h]:
+                    continue
+                failure *= (1.0 - app.availability) * (1.0 - node.availability)
+            if failure > max_failure:
+                max_failure = failure
+
+        return max_failure

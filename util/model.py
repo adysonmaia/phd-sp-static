@@ -25,6 +25,7 @@ class App:
         self.work_size = 0
         self.request_rate = 0
         self.max_instances = 0
+        self.availability = 0
         self.nb_users = 0
         self.demand = {}
         self.net_delay = {}
@@ -59,6 +60,7 @@ class Node:
         self.capacity = {}
         self.power_consumption = {}
         self.cost = {}
+        self.availability = 0
         self.point = None
 
     def get_capacity(self, resource):
