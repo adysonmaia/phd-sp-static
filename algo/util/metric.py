@@ -237,7 +237,7 @@ class Metric():
                 node = self.nodes[h]
                 if not place[a, h]:
                     continue
-                availability *= (1.0 - app.availability) * (1.0 - node.availability)
+                availability *= (1.0 - app.availability * node.availability)
             availability = 1.0 - availability
             avg += availability
 
@@ -245,7 +245,7 @@ class Metric():
             avg = avg / nb_apps
         return avg
 
-    def get_max_failure(self, place, load):
+    def get_max_unavailability(self, place, load):
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
         r_nodes = range(len(self.nodes))
@@ -258,7 +258,7 @@ class Metric():
                 node = self.nodes[h]
                 if not place[a, h]:
                     continue
-                failure *= (1.0 - app.availability) * (1.0 - node.availability)
+                failure *= (1.0 - app.availability * node.availability)
             if failure > max_failure:
                 max_failure = failure
 

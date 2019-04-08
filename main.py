@@ -24,7 +24,7 @@ def exp_1(args=[]):
     objectives = [("max_e", "get_qos_violation"),
                   ("avg_rt", "get_avg_response_time"),
                   ("cost", "get_cost"),
-                  ("max_failure", "get_max_failure")]
+                  ("max_unavail", "get_max_unavailability")]
 
     metrics = [("max_e", "get_qos_violation"),
                ("avg_e", "get_avg_deadline_violation"),
@@ -34,8 +34,8 @@ def exp_1(args=[]):
                ("avg_usage", "get_avg_resource_usage"),
                ("power", "get_power_comsumption"),
                ("cost", "get_cost"),
-               ("avg_availa", "get_avg_availability"),
-               ("max_failure", "get_max_failure")]
+               ("avg_avail", "get_avg_availability"),
+               ("max_unavail", "get_max_unavailability")]
 
     def exec_metrics(solution, output):
         for m_title, m_name in metrics:
@@ -147,8 +147,8 @@ def exp_2(args=[]):
                ("avg usage", metric.get_avg_resource_usage),
                ("power", metric.get_power_comsumption),
                ("cost", metric.get_cost),
-               ("avg availa", metric.get_avg_availability),
-               ("max failure", metric.get_max_failure)]
+               ("avg avail", metric.get_avg_availability),
+               ("max unavail", metric.get_max_unavailability)]
 
     solutions = [("cloud", algo.cloud),
                  ("genetic", algo.genetic),

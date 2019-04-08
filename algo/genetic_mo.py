@@ -33,7 +33,7 @@ class MO_Chromosome(SP_Chromosome, NSGAII_Chromosome):
             objectives = [self.metric.get_max_deadline_violation,
                           self.metric.get_avg_response_time,
                           self.metric.get_cost,
-                          self.metric.get_max_failure]
+                          self.metric.get_max_unavailability]
         self.objectives = objectives
 
     def stopping_criteria(self, population):
@@ -45,8 +45,8 @@ class MO_Chromosome(SP_Chromosome, NSGAII_Chromosome):
 
 
 def solve(input,
-          nb_generations=100,
-          population_size=100,
+          nb_generations=200,
+          population_size=200,
           elite_proportion=0.4,
           mutant_proportion=0.3,
           dominance_error=DOMINANCE_ERROR,
