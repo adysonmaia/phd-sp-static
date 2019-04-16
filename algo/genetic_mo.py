@@ -31,9 +31,8 @@ class MO_Chromosome(SP_Chromosome, NSGAII_Chromosome):
         SP_Chromosome.__init__(self, input)
         if objectives is None:
             objectives = [self.metric.get_max_deadline_violation,
-                          self.metric.get_avg_response_time,
                           self.metric.get_cost,
-                          self.metric.get_max_unavailability]
+                          self.metric.get_avg_unavailability]
         self.objectives = objectives
 
     def stopping_criteria(self, population):

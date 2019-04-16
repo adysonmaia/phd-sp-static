@@ -88,7 +88,7 @@
             "deadline": [1, 10],
             "request_rate": [0.02, 0.2],
             "work_size": [1, 5],
-            "availability": [0.8, 0.9],
+            "availability": [0.9, 0.99],
             "demand": {
                 "DISK": {"a": [1, 10], "b": [1, 10]},
                 "RAM": {"a": [1, 10], "b": [1, 10]}

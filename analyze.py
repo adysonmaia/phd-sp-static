@@ -6,7 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-DPI = 100
+DPI = 50
 
 Y_PARAM = {
     'max_e': {
@@ -27,11 +27,15 @@ Y_PARAM = {
     },
     'max_unavail': {
         'label': 'Availability - %',
-        'limit': [98.0, 100.0]
+        'limit': [70.0, 100.0]
     },
-    'avg_availa': {
-        'label': 'Avg Availability - %',
-        'limit': [99.5, 100.0]
+    'avg_unavail': {
+        'label': 'Availability - %',
+        'limit': [70.0, 100.0]
+    },
+    'avg_avail': {
+        'label': 'Availability - %',
+        'limit': [70.0, 100.0]
     }
 }
 
@@ -47,13 +51,13 @@ X_PARAM = {
 }
 
 SOL_LABEL = {
-    ('cloud', ''): 'cloud',
-    ('genetic', 'max_e'): 'so_deadline',
-    ('genetic', 'avg_rt'): 'so_rt',
-    ('genetic', 'cost'): 'so_cost',
-    ('genetic', 'max_unavail'): 'so_avail',
-    ('genetic_mo', 'v1'): 'mo_v1',
-    ('genetic_mo', 'v2'): 'mo_v2'
+    ('cloud', ''): r'Cloud',
+    ('genetic', 'max_e'): r'SO_dv',
+    ('genetic', 'avg_rt'): r'SO_rt',
+    ('genetic', 'cost'): r'SO_cost',
+    ('genetic', 'avg_unavail'): r'SO_fail',
+    ('genetic_mo', 'v1'): r'MO_1',
+    ('genetic_mo', 'v2'): r'MO_2'
 }
 
 
@@ -85,7 +89,9 @@ def format_metric(value, metric):
     value = float(value)
     if metric == 'max_unavail':
         value = 100.0 * (1.0 - value)
-    if metric == 'avg_availa':
+    elif metric == 'avg_unavail':
+        value = 100.0 * (1.0 - value)
+    elif metric == 'avg_avail':
         value = 100.0 * value
     elif metric == 'deadline_sr':
         value = 100.0 * value
@@ -108,7 +114,7 @@ def calc_stats(values):
 
 def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
     plt.clf()
-    matplotlib.rcParams.update({'font.size': 17})
+    matplotlib.rcParams.update({'font.size': 20})
     filtered = filter_data(data, **data_filter)
     formats = ['-o', '-s', '-<', '-->', '-^', '-v', '-d']
     formats_len = len(formats)
@@ -133,8 +139,8 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
     # ncol = 4 if len(solutions) > 4 else 3
     ncol = 4
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12),
-               numpoints=1, ncol=ncol, columnspacing=0.5, fontsize=17)
-    plt.subplots_adjust(bottom=0.27, top=0.97, left=0.12, right=0.96)
+               numpoints=1, ncol=ncol, columnspacing=0.5, fontsize=20)
+    plt.subplots_adjust(bottom=0.2, top=0.97, left=0.12, right=0.96)
 
     x_param = X_PARAM[x_field]
     y_param = Y_PARAM[metric]
@@ -159,30 +165,15 @@ def exp_1(args=[]):
             ('cloud', ''),
             ('genetic', 'max_e'),
         ],
-        'deadline_sr': [
-            ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
-            ('cloud', ''),
-            ('genetic', 'max_e'),
-        ],
-        'avg_rt': [
-            ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
-            ('cloud', ''),
-            ('genetic', 'avg_rt'),
-        ],
         'cost': [
             ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
             ('cloud', ''),
             ('genetic', 'cost'),
         ],
-        'max_unavail': [
+        'avg_avail': [
             ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
             ('cloud', ''),
-            ('genetic', 'max_unavail'),
-        ],
-        'avg_availa': [
-            ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
-            ('cloud', ''),
-            ('genetic', 'max_unavail'),
+            ('genetic', 'avg_unavail'),
         ],
     }
 
@@ -192,12 +183,12 @@ def exp_1(args=[]):
 
     params = [
         {'field': 'apps',
-         'values': r_apps,
+         'values': [50],
          'x_values': r_users,
          'x_field': 'users'
          },
         {'field': 'users',
-         'values': r_users,
+         'values': [10000],
          'x_values': r_apps,
          'x_field': 'apps'
          },
