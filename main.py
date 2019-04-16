@@ -33,15 +33,15 @@ class Exp_1():
         random.seed()
         np.random.seed()
 
-        self.pool = ProcessPool(4)
+        self.pool = ProcessPool(6)
         self.nb_runs = 30
 
         self.input_filename = "input.json"
         self.output_filename = "output/result_exp_1.csv"
 
         self.scenarios = [
-            {"nodes": [27], "apps": range(10, 51, 10), "users": [10000]},
-            {"nodes": [27], "apps": [50], "users": range(1000, 10001, 3000)},
+            {"nodes": [27], "apps": [10, 20, 30, 40], "users": [10000]},
+            {"nodes": [27], "apps": [50], "users": [1000, 4000, 7000, 10000]},
         ]
 
         self.objectives = [("max_e", "get_qos_violation"),
