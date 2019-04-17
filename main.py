@@ -40,8 +40,8 @@ class Exp_1():
         self.output_filename = "output/result_exp_1.csv"
 
         self.scenarios = [
-            {"nodes": [27], "apps": [10, 20, 30, 40], "users": [10000]},
-            {"nodes": [27], "apps": [50], "users": [1000, 4000, 7000, 10000]},
+            {"nodes": [27], "apps": [5, 25, 75, 100], "users": [10000]},
+            {"nodes": [27], "apps": [50], "users": [1000, 5000, 10000, 15000, 20000]},
         ]
 
         self.objectives = [("max_e", "get_qos_violation"),
