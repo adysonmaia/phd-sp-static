@@ -1,4 +1,5 @@
 import random
+import copy
 import math
 import json
 from util import point, path, model
@@ -54,6 +55,32 @@ class Input:
         self._gen_users()
 
         return self
+
+    def filter(self, app_indexes=None, node_indexes=None):
+        new_input = copy.copy(self)
+
+        if not app_indexes:
+            app_indexes = range(len(self.apps))
+        if not node_indexes:
+            node_indexes = range(len(self.nodes))
+
+        apps = list(map(lambda i: copy.deepcopy(self.apps[i]), app_indexes))
+        nodes = list(map(lambda i: copy.deepcopy(self.nodes[i]), node_indexes))
+
+        total_users = 0
+        for app in apps:
+            users = 0
+            for node in nodes:
+                users += app.get_users(node)
+            app.nb_users = users
+            total_users += users
+
+        new_input.apps = apps
+        new_input.nodes = nodes
+        new_input.nb_apps = len(apps)
+        new_input.nb_nodes = len(nodes)
+        new_input.nb_users = total_users
+        return new_input
 
     def _gen_resources(self):
         data = self.input_data["resources"]

@@ -8,9 +8,9 @@ def solve(input,
           population_size=100,
           elite_proportion=0.4,
           mutant_proportion=0.3,
-          objectives=None):
+          objective=None):
 
-    chromossome = MO_Chromosome(input, objectives)
+    chromossome = MO_Chromosome(input, objective)
     genetic = NSGAII(chromossome,
                      nb_generations=nb_generations,
                      population_size=population_size,

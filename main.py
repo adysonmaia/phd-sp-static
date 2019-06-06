@@ -112,7 +112,7 @@ class Exp_1():
         for s_version, solver in mo_versions:
             data = Solver_Data()
             data.solver = solver
-            data.params = {"input": config, "objectives": obj_func}
+            data.params = {"input": config, "objective": obj_func}
             data.title = "genetic_mo"
             data.version = s_version
             data.nb_nodes = nb_nodes

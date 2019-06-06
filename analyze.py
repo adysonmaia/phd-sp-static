@@ -23,7 +23,7 @@ Y_PARAM = {
     },
     'cost': {
         'label': 'Cost',
-        'limit': [100.0, 1400.0]
+        'limit': [0.0, 1500.0]
     },
     'max_unavail': {
         'label': 'Availability - %',
@@ -35,7 +35,7 @@ Y_PARAM = {
     },
     'avg_avail': {
         'label': 'Availability - %',
-        'limit': [70.0, 100.0]
+        'limit': [0.0, 100.0]
     }
 }
 
@@ -74,7 +74,13 @@ def get_data_from_file(filename):
 
 
 def filter_data(data, **kwargs):
-    f_values = {k: str(v) for k, v in kwargs.items()}
+    def to_string_values(values):
+        str_values = []
+        if not isinstance(values, list):
+            values = [values]
+        for value in values:
+            str_values.append(str(value))
+        return str_values
 
     def in_filter(row):
         for key, value in row.items():
@@ -82,6 +88,7 @@ def filter_data(data, **kwargs):
                 return False
         return True
 
+    f_values = {k: to_string_values(v) for k, v in kwargs.items()}
     return list(filter(lambda row: in_filter(row), data))
 
 
@@ -116,11 +123,11 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
     plt.clf()
     matplotlib.rcParams.update({'font.size': 20})
     filtered = filter_data(data, **data_filter)
-    formats = ['-o', '-s', '-<', '-->', '-^', '-v', '-d']
+    formats = ['-o', '-s', '-<', 'k-->', '-^', '-v', '-d']
     formats_len = len(formats)
     line = 0
     for solution, version in solutions:
-        sol_data = filter_data(filtered, solution=[solution], version=[version])
+        sol_data = filter_data(filtered, solution=solution, version=version)
         y = []
         y_errors = []
         for i in x:
@@ -133,7 +140,7 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
 
         line_format = formats[line % formats_len]
         label = SOL_LABEL[solution, version]
-        plt.errorbar(x, y, yerr=y_errors, label=label, fmt=line_format)
+        plt.errorbar(x, y, yerr=y_errors, label=label, fmt=line_format, markersize=10)
         line += 1
 
     # ncol = 4 if len(solutions) > 4 else 3
@@ -159,6 +166,7 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
 
 def exp_1(args=[]):
     data = get_data_from_file('output/result_exp_1.csv')
+
     metric_solutions = {
         'max_e': [
             ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
@@ -178,8 +186,11 @@ def exp_1(args=[]):
     }
 
     nodes = 27
-    r_apps = range(10, 51, 10)
-    r_users = range(1000, 10001, 3000)
+    # r_apps = [5, 25, 50, 75, 100]
+    # r_users = [1000, 5000, 10000, 15000, 20000]
+
+    r_apps = [10, 20, 30, 40, 50]
+    r_users = [1000, 4000, 7000, 10000]
 
     params = [
         {'field': 'apps',
@@ -197,7 +208,7 @@ def exp_1(args=[]):
     for param in params:
         for value in param['values']:
             for metric, solutions in metric_solutions.items():
-                data_filter = {'nodes': [nodes], param['field']: [value]}
+                data_filter = {'nodes': nodes, param['field']: value}
                 x = param['x_values']
                 x_field = param['x_field']
                 filename = "output/figs/fig_{}_{}_{}.png".format(

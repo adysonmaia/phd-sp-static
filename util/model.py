@@ -1,9 +1,9 @@
 INF = float("inf")
 CPU = "CPU"
-LINEAR_SLOP = "a"
-LINEAR_CONST = "b"
-K1 = LINEAR_SLOP
-K2 = LINEAR_CONST
+LINEAR_SLOPE = "a"
+LINEAR_INTERCEPT = "b"
+K1 = LINEAR_SLOPE
+K2 = LINEAR_INTERCEPT
 POWER_IDLE = "min"
 POWER_MAX = "max"
 
@@ -38,8 +38,22 @@ class App:
         value = self.demand[resource]
         return (value[K1], value[K2])
 
+    def get_demand_k1(self, resource):
+        value = self.demand[resource]
+        return value[K1]
+
+    def get_demand_k2(self, resource):
+        value = self.demand[resource]
+        return value[K2]
+
     def get_cpu_demand(self):
         return self.get_demand(CPU)
+
+    def get_cpu_demand_k1(self):
+        return self.get_demand_k1(CPU)
+
+    def get_cpu_demand_k2(self):
+        return self.get_demand_k2(CPU)
 
     def get_net_delay(self, node_i, node_j):
         return self.net_delay[node_i.id, node_j.id]
@@ -65,6 +79,9 @@ class Node:
 
     def get_capacity(self, resource):
         return self.capacity[resource]
+
+    def set_capacity(self, resource, value):
+        self.capacity[resource] = value
 
     def get_cpu_capacity(self):
         return self.capacity[CPU]

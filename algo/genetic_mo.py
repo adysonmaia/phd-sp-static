@@ -49,9 +49,9 @@ def solve(input,
           elite_proportion=0.4,
           mutant_proportion=0.3,
           dominance_error=DOMINANCE_ERROR,
-          objectives=None):
+          objective=None):
 
-    chromossome = MO_Chromosome(input, objectives)
+    chromossome = MO_Chromosome(input, objective)
     genetic = SP_NSGAII(chromossome,
                         nb_generations=nb_generations,
                         population_size=population_size,
