@@ -10,7 +10,8 @@ class Cluster(SP_Solver):
         SP_Solver.__init__(self, input)
 
         if not solver:
-            solver = algo.genetic_mo
+            # solver = algo.genetic_mo
+            solver = algo.milp
         self.solver = solver
         if not solver_params:
             solver_params = {}
@@ -62,17 +63,21 @@ class Cluster(SP_Solver):
                     max_score = score
                     nb_clusters = k
 
-        c_nodes = kmedoids.fit(nb_clusters, features, distances)
+        clusters = kmedoids.fit(nb_clusters, features, distances)
+        return self._gen_clusters_data(app_index, clusters)
+
+    def _gen_clusters_data(self, app_index, clusters):
+        nb_clusters = len(clusters)
+        app = self.apps[app_index]
 
         max_instances = int(math.floor(app.max_instances / nb_clusters))
-
-        clusters = []
+        data = []
         for c in range(nb_clusters):
             cluster = Cluster_Data()
             cluster.app = app
             cluster.app_index = app_index
 
-            node_indexes = c_nodes[c]
+            node_indexes = clusters[c]
             node_indexes.append(self.get_core_index())
             node_indexes.append(self.get_cloud_index())
             cluster.node_indexes = node_indexes
@@ -81,9 +86,9 @@ class Cluster(SP_Solver):
             c_input.apps[0].max_instances = max_instances
             cluster.input = c_input
 
-            clusters.append(cluster)
+            data.append(cluster)
 
-        return clusters
+        return data
 
     def _update_input(self, cluster, place, load):
         r_nodes = range(len(self.nodes))

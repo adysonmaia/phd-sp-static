@@ -40,9 +40,11 @@ def exp_2(args=[]):
     #              ("cluster", algo.cluster)]
 
     solutions = [("cloud", algo.cloud),
-                 ("genetic", algo.genetic),
-                 ("genetic mo", algo.genetic_mo),
-                 ("cluster", algo.cluster)]
+                 # ("milp", algo.milp),
+                 # ("genetic", algo.genetic),
+                 ("cluster", algo.cluster),
+                 # ("cluster 2", algo.cluster_2)
+                 ]
 
     for title, solver in solutions:
         start_time = time.time()
@@ -55,6 +57,9 @@ def exp_2(args=[]):
         for m_title, m_func in metrics:
             value = m_func(*solution.get_vars())
             print("\t {:15} : {}".format(m_title, value))
+
+        if title == "milp":
+            print("\t {:15} : {}".format("relaxed e", solution.e_relaxed))
 
 
 if __name__ == '__main__':

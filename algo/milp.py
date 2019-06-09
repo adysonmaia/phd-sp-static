@@ -85,7 +85,7 @@ class MILP(SP_Solver):
                             for h in r_nodes)
         # Node Capacity
         mdl.add_constraints(mdl.sum(np.dot([dexpr_load[a, h], dvar_place[a, h]],
-                                           self.apps[a].get_demand())
+                                           self.apps[a].get_demand(r))
                                     for a in r_apps)
                             <= self.nodes[h].get_capacity(r)
                             for h in r_nodes
@@ -173,7 +173,7 @@ class MILP(SP_Solver):
         return place, load, obj_value
 
 
-def solve(input, time_limit=300):
+def solve(input, time_limit=600):
     solver = MILP(input, time_limit)
     result = list(solver.solve())
     output = Output(input)

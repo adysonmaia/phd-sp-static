@@ -33,6 +33,9 @@ class Point2D(Point):
         r = 0.67 * self.y / float(hex_size)
         return HexPoint(q, r, hex_size).round()
 
+    def to_pixel(self):
+        return self
+
 
 class Point3D(Point):
     def __init__(self, x, y, z):

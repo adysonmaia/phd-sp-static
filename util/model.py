@@ -6,6 +6,7 @@ K1 = LINEAR_SLOPE
 K2 = LINEAR_INTERCEPT
 POWER_IDLE = "min"
 POWER_MAX = "max"
+BS_TYPE = "BS"
 
 
 class AppType:
@@ -99,3 +100,6 @@ class Node:
             return False
         else:
             return self.point.is_neighbor(node.point)
+
+    def is_base_station(self):
+        return self.type.upper() == "BS"
