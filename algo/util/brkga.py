@@ -13,6 +13,7 @@ class BRKGA:
                  nb_generations,
                  elite_proportion,
                  mutant_proportion,
+                 elite_probability=None,
                  pool_size=0):
 
         self.chromossome = chromossome
@@ -23,6 +24,10 @@ class BRKGA:
         self.mutant_proportion = mutant_proportion
         self._elite_size = int(round(self.elite_proportion * self.pop_size))
         self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
+        self.elite_probability = elite_probability
+
+        if self.elite_probability is None:
+            self.elite_probability = self._elite_size / float(self.pop_size)
 
         if pool_size > 0:
             self._pool = ProcessPool(pool_size)
@@ -77,14 +82,13 @@ class BRKGA:
         next_population += mutants
 
         non_elite = prev_ranked_pop[self._elite_size:]
-        non_elite_size = len(non_elite)
         cross_size = self.pop_size - self._elite_size - self._mutant_size
         for i in range(cross_size):
             indiv_1 = random.choice(elite)
             indiv_2 = random.choice(non_elite)
             offspring = self._crossover(indiv_1, indiv_2,
-                                        self._elite_size / float(self.pop_size),
-                                        non_elite_size / float(self.pop_size))
+                                        self.elite_probability,
+                                        1.0 - self.elite_probability)
             next_population += offspring
 
         next_population = self._classify_population(next_population)

@@ -19,6 +19,14 @@ $ time python main.py exp_2
 $ time python main.py exp_n param_1 param_2 ...
 ```
 
+## Execute Tests
+```sh
+$ time python test.py exp_1
+$ time python test.py exp_2
+$ time python test.py exp_n param_1 param_2 ...
+```
+
+
 ## Generate Figures
 ```sh
 $ python analyze.py

@@ -133,10 +133,24 @@ def gen_hex_map(nb_points, hex_size=DEFAULT_HEX_SIZE):
     return points
 
 
-def gen_hex_rect_map(rows, columns, hex_size=DEFAULT_HEX_SIZE):
+def gen_rect_map(nb_points, hex_size=DEFAULT_HEX_SIZE):
+    columns = int(math.floor(math.sqrt(nb_points)))
+    rows = columns
+    remaining = nb_points - rows * columns
+
     points = [HexPoint(c - math.floor(r / 2.0), r, hex_size)
               for r in range(rows)
               for c in range(columns)]
+
+    # add the remaining points that are not in the square
+    for i in range(remaining):
+        r = int(math.floor(i / float(columns)))
+        c = i - r * columns
+        r += rows
+
+        point = HexPoint(c - math.floor(r / 2.0), r, hex_size)
+        points.append(point)
+
     return points
 
 
@@ -160,8 +174,10 @@ def calc_hex_bound_box(nb_points, hex_size=DEFAULT_HEX_SIZE):
 def calc_rect_bound_box(nb_points, hex_size=DEFAULT_HEX_SIZE):
     min_p = Point2D(-0.86 * hex_size, -hex_size)
 
-    rows = int(math.floor(math.sqrt(nb_points)))
-    columns = rows
+    columns = int(math.floor(math.sqrt(nb_points)))
+    rows = columns
+    # add rows for the remaining points that are not in the square
+    rows += int(math.floor(nb_points / float(columns) - rows))
 
     w = 1.73 * hex_size * columns
     h = (rows - 1) * (1.5 * hex_size) + hex_size

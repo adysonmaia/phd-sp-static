@@ -10,10 +10,11 @@ class NSGAII(BRKGA):
                  population_size,
                  nb_generations,
                  elite_proportion,
-                 mutant_proportion):
+                 mutant_proportion,
+                 elite_probability):
 
         BRKGA.__init__(self, chromossome, population_size, nb_generations,
-                       elite_proportion, mutant_proportion)
+                       elite_proportion, mutant_proportion, elite_probability)
 
     def _classify_population(self, population):
         fitnesses = [self.chromossome.fitness(i) for i in population]

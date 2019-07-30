@@ -8,6 +8,7 @@ def solve(input,
           population_size=100,
           elite_proportion=0.4,
           mutant_proportion=0.3,
+          elite_probability=0.7,
           objective=None):
 
     chromossome = MO_Chromosome(input, objective)
@@ -15,7 +16,8 @@ def solve(input,
                      nb_generations=nb_generations,
                      population_size=population_size,
                      elite_proportion=elite_proportion,
-                     mutant_proportion=mutant_proportion)
+                     mutant_proportion=mutant_proportion,
+                     elite_probability=elite_probability)
 
     population = genetic.solve()
     result = chromossome.decode(population[0])

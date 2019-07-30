@@ -1,3 +1,5 @@
+import math
+
 INF = float("inf")
 CPU = "CPU"
 LINEAR_SLOPE = "a"
@@ -35,16 +37,16 @@ class App:
     def get_users(self, node):
         return self.users[node.id]
 
-    def get_demand(self, resource):
-        value = self.demand[resource]
+    def get_demand(self, resource_name):
+        value = self.demand[resource_name]
         return (value[K1], value[K2])
 
-    def get_demand_k1(self, resource):
-        value = self.demand[resource]
+    def get_demand_k1(self, resource_name):
+        value = self.demand[resource_name]
         return value[K1]
 
-    def get_demand_k2(self, resource):
-        value = self.demand[resource]
+    def get_demand_k2(self, resource_name):
+        value = self.demand[resource_name]
         return value[K2]
 
     def get_cpu_demand(self):
@@ -58,6 +60,9 @@ class App:
 
     def get_net_delay(self, node_i, node_j):
         return self.net_delay[node_i.id, node_j.id]
+
+    def get_requests(self, node):
+        return int(math.ceil(self.get_users(node) * self.request_rate))
 
 
 class Resource:
@@ -78,11 +83,11 @@ class Node:
         self.availability = 0
         self.point = None
 
-    def get_capacity(self, resource):
-        return self.capacity[resource]
+    def get_capacity(self, resource_name):
+        return self.capacity[resource_name]
 
-    def set_capacity(self, resource, value):
-        self.capacity[resource] = value
+    def set_capacity(self, resource_name, value):
+        self.capacity[resource_name] = value
 
     def get_cpu_capacity(self):
         return self.capacity[CPU]
@@ -102,4 +107,4 @@ class Node:
             return self.point.is_neighbor(node.point)
 
     def is_base_station(self):
-        return self.type.upper() == "BS"
+        return self.type.upper() == BS_TYPE

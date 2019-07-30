@@ -190,9 +190,7 @@ class Input:
 
         bs_points = []
         if map_data["format"] == "rectangle":
-            rows = int(math.floor(math.sqrt(nb_bs)))
-            columns = rows
-            bs_points = point.gen_hex_rect_map(rows, columns)
+            bs_points = point.gen_rect_map(nb_bs)
         else:
             bs_points = point.gen_hex_map(nb_bs)
 
