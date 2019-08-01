@@ -8,6 +8,7 @@ class Metric():
         self.apps = input.apps
         self.resources = input.resources
         self.CPU = input.get_cpu_resource().name
+        self.filter = MetricFilter(input)
 
     def _get_nb_users(self, app_index, node_index):
         app = self.apps[app_index]
@@ -38,21 +39,21 @@ class Metric():
         node_2 = self.nodes[node2_index]
         return app.get_net_delay(node_1, node_2)
 
-    def _get_resource_demand(self, place, load, node_index, resource):
+    def _get_resource_demand(self, place, load, node_index, resource_name):
         r_apps = range(len(self.apps))
         r_nodes = range(len(self.nodes))
 
         demand = 0
         for a in r_apps:
-            k1, k2 = self.apps[a].get_demand(resource)
+            k1, k2 = self.apps[a].get_demand(resource_name)
             node_load = int(sum([load[a, b, node_index] for b in r_nodes]))
             demand += float(place[a, node_index] * (node_load * k1 + k2))
 
         return demand
 
     def get_max_deadline_violation(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
 
         max_e = 0.0
         for a in r_apps:
@@ -75,8 +76,8 @@ class Metric():
         return self.get_max_deadline_violation(place, load)
 
     def get_avg_deadline_violation(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
 
         avg_e = 0.0
         count = 0
@@ -100,8 +101,8 @@ class Metric():
         return avg_e
 
     def get_deadline_satisfaction(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
 
         rate = 0.0
         count = 0
@@ -124,8 +125,8 @@ class Metric():
         return rate
 
     def get_avg_response_time(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
 
         avg_rt = 0.0
         count = 0
@@ -146,7 +147,7 @@ class Metric():
         return avg_rt
 
     def get_avg_resource_usage(self, place, load):
-        r_nodes = range(len(self.nodes))
+        r_nodes = self.filter.get_r_nodes()
 
         avg = 0.0
         count = 0
@@ -164,7 +165,7 @@ class Metric():
         return avg
 
     def get_max_resource_usage(self, place, load):
-        r_nodes = range(len(self.nodes))
+        r_nodes = self.filter.get_r_nodes()
 
         max_usage = 0
         for h in r_nodes:
@@ -180,7 +181,7 @@ class Metric():
         return max_usage
 
     def get_overall_power_comsumption(self, place, load):
-        r_nodes = range(len(self.nodes))
+        r_nodes = self.filter.get_r_nodes()
 
         total_power = 0.0
         for h in r_nodes:
@@ -199,8 +200,8 @@ class Metric():
         return self.get_overall_power_comsumption(place, load)
 
     def get_overall_cost(self, place, load):
-        r_apps = range(len(self.apps))
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
 
         total_cost = 0.0
         for a in r_apps:
@@ -225,9 +226,9 @@ class Metric():
         return self.get_overall_cost(place, load)
 
     def get_avg_availability(self, place, load):
-        nb_apps = len(self.apps)
-        r_apps = range(nb_apps)
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
+        nb_apps = len(r_apps)
 
         avg = 0.0
         for a in r_apps:
@@ -246,9 +247,8 @@ class Metric():
         return avg
 
     def get_max_unavailability(self, place, load):
-        nb_apps = len(self.apps)
-        r_apps = range(nb_apps)
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
 
         max_failure = 0.0
         for a in r_apps:
@@ -265,9 +265,9 @@ class Metric():
         return max_failure
 
     def get_avg_unavailability(self, place, load):
-        nb_apps = len(self.apps)
-        r_apps = range(nb_apps)
-        r_nodes = range(len(self.nodes))
+        r_apps = self.filter.get_r_apps()
+        r_nodes = self.filter.get_r_nodes()
+        nb_apps = len(r_apps)
 
         avg = 0.0
         for a in r_apps:
@@ -283,3 +283,39 @@ class Metric():
         if nb_apps > 0:
             avg = avg / nb_apps
         return avg
+
+
+class MetricFilter:
+    def __init__(self, input):
+        self.input = input
+        self.clean()
+
+    def clean(self):
+        self.app_type = None
+        self.node_type = None
+
+    def set_app_type(self, type):
+        self.app_type = type
+        return self
+
+    def set_node_type(self, type):
+        self.node_type = type
+        return self
+
+    def get_r_apps(self):
+        apps = self.input.apps
+        r_apps = range(len(apps))
+
+        if self.app_type is not None:
+            r_apps = list(filter(lambda i: apps[i].type == self.app_type, r_apps))
+
+        return r_apps
+
+    def get_r_nodes(self):
+        nodes = self.input.nodes
+        r_nodes = range(len(nodes))
+
+        if self.node_type is not None:
+            r_nodes = list(filter(lambda i: nodes[i].type == self.node_type, r_nodes))
+
+        return r_nodes
