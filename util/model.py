@@ -1,4 +1,5 @@
 import math
+import copy
 
 INF = float("inf")
 CPU = "CPU"
@@ -9,6 +10,49 @@ K2 = LINEAR_INTERCEPT
 POWER_IDLE = "min"
 POWER_MAX = "max"
 BS_TYPE = "BS"
+
+
+class Input:
+    def __init__(self):
+        self.resources = {}
+        self.apps = []
+        self.app_types = {}
+        self.nodes = []
+
+    def get_cloud_index(self):
+        return len(self.nodes) - 1
+
+    def get_core_index(self):
+        return len(self.nodes) - 2
+
+    def get_cpu_resource(self):
+        return self.resources[CPU]
+
+    def filter(self, app_indexes=None, node_indexes=None):
+        new_input = copy.copy(self)
+
+        if not app_indexes:
+            app_indexes = range(len(self.apps))
+        if not node_indexes:
+            node_indexes = range(len(self.nodes))
+
+        apps = list(map(lambda i: copy.deepcopy(self.apps[i]), app_indexes))
+        nodes = list(map(lambda i: copy.deepcopy(self.nodes[i]), node_indexes))
+
+        total_users = 0
+        for app in apps:
+            users = 0
+            for node in nodes:
+                users += app.get_users(node)
+            app.nb_users = users
+            total_users += users
+
+        new_input.apps = apps
+        new_input.nodes = nodes
+        # new_input.nb_apps = len(apps)
+        # new_input.nb_nodes = len(nodes)
+        # new_input.nb_users = total_users
+        return new_input
 
 
 class AppType:

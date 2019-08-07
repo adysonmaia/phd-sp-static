@@ -24,6 +24,9 @@ class SP_Solver():
     def get_nb_users(self, app_index, node_index):
         return self.apps[app_index].get_users(self.nodes[node_index])
 
+    def get_nb_requests(self, app_index, node_index):
+        return self.apps[app_index].get_requests(self.nodes[node_index])
+
     def solve(self):
         r_nodes = range(len(self.nodes))
         r_apps = range(len(self.apps))

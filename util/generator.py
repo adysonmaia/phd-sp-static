@@ -1,5 +1,4 @@
 import random
-import copy
 import math
 import json
 from util import point, path, model
@@ -29,21 +28,15 @@ def get_float_param(param, precision=None):
     return param
 
 
-class Input:
-    def __init__(self, file):
-        with open(file) as json_data:
-            self.input_data = json.load(json_data)
+class InputGenerator:
+    def __init__(self):
+        pass
 
-    def get_cloud_index(self):
-        return len(self.nodes) - 1
+    def gen_from_file(self, config_file, nb_nodes, nb_apps, nb_users):
+        with open(config_file) as json_data:
+            self.config = json.load(json_data)
 
-    def get_core_index(self):
-        return len(self.nodes) - 2
-
-    def get_cpu_resource(self):
-        return self.resources["CPU"]
-
-    def gen_rand_data(self, nb_nodes, nb_apps, nb_users):
+        self.input = model.Input()
         self.nb_nodes = nb_nodes
         self.nb_apps = nb_apps
         self.nb_users = nb_users
@@ -54,37 +47,11 @@ class Input:
         self._gen_network()
         self._gen_users()
 
-        return self
-
-    def filter(self, app_indexes=None, node_indexes=None):
-        new_input = copy.copy(self)
-
-        if not app_indexes:
-            app_indexes = range(len(self.apps))
-        if not node_indexes:
-            node_indexes = range(len(self.nodes))
-
-        apps = list(map(lambda i: copy.deepcopy(self.apps[i]), app_indexes))
-        nodes = list(map(lambda i: copy.deepcopy(self.nodes[i]), node_indexes))
-
-        total_users = 0
-        for app in apps:
-            users = 0
-            for node in nodes:
-                users += app.get_users(node)
-            app.nb_users = users
-            total_users += users
-
-        new_input.apps = apps
-        new_input.nodes = nodes
-        new_input.nb_apps = len(apps)
-        new_input.nb_nodes = len(nodes)
-        new_input.nb_users = total_users
-        return new_input
+        return self.input
 
     def _gen_resources(self):
-        data = self.input_data["resources"]
-        self.resources = {}
+        data = self.config["resources"]
+        self.input.resources = {}
 
         for r in data:
             resouce = model.Resource()
@@ -96,12 +63,12 @@ class Input:
             if "precision" in r:
                 resouce.precision = int(r["precision"])
 
-            self.resources[key] = resouce
+            self.input.resources[key] = resouce
 
-        return self
+        return
 
     def _gen_apps(self):
-        data = self.input_data["apps"]
+        data = self.config["apps"]
         nb_types = len(data)
 
         type_nb_apps = [self.nb_apps // nb_types] * nb_types
@@ -111,8 +78,8 @@ class Input:
         type_nb_users[0] += self.nb_users - sum(type_nb_users)
 
         app_id = 0
-        self.apps = []
-        self.app_types = {}
+        self.input.apps = []
+        self.input.app_types = {}
         for type_index in range(nb_types):
             type_data = data[type_index]
 
@@ -122,7 +89,7 @@ class Input:
             type.name = type_data["type"]
             type.user_proportion = type_data["users"]
             type.network = type_data["network_delay"]
-            self.app_types[type.name] = type
+            self.input.app_types[type.name] = type
 
             if type.nb_apps <= 0 or type.nb_users <= 0:
                 continue
@@ -134,11 +101,11 @@ class Input:
                 app = self._gen_app(type_data)
                 app.id = app_id
                 app.nb_users = app_nb_users[app_index]
-                self.apps.append(app)
+                self.input.apps.append(app)
 
                 app_id += 1
 
-        return self
+        return
 
     def _gen_app(self, data):
         app = model.App()
@@ -160,7 +127,7 @@ class Input:
 
         # TODO: improve CPU demand based on WORK SIZE
         app.demand = {}
-        for r_name, r in self.resources.items():
+        for r_name, r in self.input.resources.items():
             r_demand = {"a": 0, "b": 0}
 
             if r_name == "CPU":
@@ -185,7 +152,7 @@ class Input:
         return app
 
     def _gen_nodes(self):
-        map_data = self.input_data["map"]
+        map_data = self.config["map"]
         nb_bs = self.nb_nodes - 2
 
         bs_points = []
@@ -195,24 +162,24 @@ class Input:
             bs_points = point.gen_hex_map(nb_bs)
 
         node_id = 0
-        self.nodes = []
+        self.input.nodes = []
 
-        bs_data = self.input_data["nodes"]["BS"]
+        bs_data = self.config["nodes"]["BS"]
         for bs_index in range(nb_bs):
             node = self._gen_node(bs_data)
             node.id = node_id
             node.point = bs_points[bs_index]
-            self.nodes.append(node)
+            self.input.nodes.append(node)
             node_id += 1
 
         types = ["CORE", "CLOUD"]
         for type in types:
-            node = self._gen_node(self.input_data["nodes"][type])
+            node = self._gen_node(self.config["nodes"][type])
             node.id = node_id
-            self.nodes.append(node)
+            self.input.nodes.append(node)
             node_id += 1
 
-        return self
+        return
 
     def _gen_node(self, data):
         node = model.Node()
@@ -226,7 +193,7 @@ class Input:
 
         node.cost = {}
         node.capacity = {}
-        for r_name, r in self.resources.items():
+        for r_name, r in self.input.resources.items():
             r_cost = {"a": 0, "b": 0}
             r_capacity = 0
 
@@ -250,11 +217,10 @@ class Input:
         return node
 
     def _gen_network(self):
-        nb_nodes = len(self.nodes)
-        r_nodes = range(nb_nodes)
+        r_nodes = range(self.nb_nodes)
 
-        for app in self.apps:
-            app_type = self.app_types[app.type]
+        for app in self.input.apps:
+            app_type = self.input.app_types[app.type]
             data = app_type.network
             net_data = {}
 
@@ -263,9 +229,9 @@ class Input:
 
             graph = [[INF for j in r_nodes] for i in r_nodes]
             for i in r_nodes:
-                node_i = self.nodes[i]
-                for j in range(i, nb_nodes):
-                    node_j = self.nodes[j]
+                node_i = self.input.nodes[i]
+                for j in range(i, self.nb_nodes):
+                    node_j = self.input.nodes[j]
                     delay = INF
 
                     if i == j:
@@ -284,18 +250,18 @@ class Input:
             shortest_delay = path.calc_net_delay(graph)
             app.net_delay = {}
             for i in r_nodes:
-                id_i = self.nodes[i].id
+                id_i = self.input.nodes[i].id
                 for j in r_nodes:
-                    id_j = self.nodes[j].id
+                    id_j = self.input.nodes[j].id
                     delay = round(shortest_delay[i][j], 4)
                     app.net_delay[(id_i, id_j)] = delay
 
-        return self
+        return
 
     def _gen_users(self):
         nb_bs = self.nb_nodes - 2
-        map_format = self.input_data["map"]['format']
-        distributions = self.input_data["map"]["distribution"]
+        map_format = self.config["map"]['format']
+        distributions = self.config["map"]["distribution"]
 
         bound_box = None
         if map_format == "rectangle":
@@ -303,10 +269,10 @@ class Input:
         else:
             bound_box = point.calc_hex_bound_box(nb_bs)
 
-        bs_nodes = list(filter(lambda n: n.type == "BS", self.nodes))
-        for app in self.apps:
+        bs_nodes = list(filter(lambda n: n.type == "BS", self.input.nodes))
+        for app in self.input.apps:
             points = self._gen_points(app.nb_users, distributions, bound_box)
-            app.users = {n.id: 0 for n in self.nodes}
+            app.users = {n.id: 0 for n in self.input.nodes}
             for p in points:
                 min_dist = INF
                 min_bs = None
@@ -319,6 +285,8 @@ class Input:
                         min_bs = bs
 
                 app.users[min_bs.id] += 1
+
+        return
 
     def _gen_points(self, nb_points, distributions, bound_box):
         distribution = random.choice(distributions)

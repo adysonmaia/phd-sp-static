@@ -1,4 +1,3 @@
-import math
 from algo.util.sp import SP_Solver
 from algo.util.output import Output
 
@@ -12,9 +11,9 @@ class Cloud(SP_Solver):
         r_nodes = range(len(self.nodes))
         r_apps = range(len(self.apps))
 
-        requests = [[int(math.ceil(app.get_users(node) * app.request_rate))
-                     for node in self.nodes]
-                    for app in self.apps]
+        requests = [[self.get_nb_requests(a, h)
+                     for h in r_nodes]
+                    for a in r_apps]
 
         cloud = self.get_cloud_index()
         place = {(a, h): 0 if h != cloud else 1

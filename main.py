@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import time
 from pathos.multiprocessing import ProcessPool
-from util import input
+from util import generator
 from algo.util.metric import Metric
 import algo
 
@@ -91,14 +91,15 @@ class Exp_1():
                         self._write_output(output)
 
     def _get_solvers(self, nb_nodes, nb_apps, nb_users, run):
-        config = input.Input(self.input_filename)
-        config.gen_rand_data(nb_nodes, nb_apps, nb_users)
-        metric = Metric(config)
+        input = generator.InputGenerator().gen_from_file(
+            self.input_filename, nb_nodes, nb_apps, nb_users
+        )
+        metric = Metric(input)
         solvers = []
 
         data = Solver_Data()
         data.solver = algo.cloud
-        data.params = {"input": config}
+        data.params = {"input": input}
         data.title = "cloud"
         data.version = ""
         data.nb_nodes = nb_nodes
@@ -112,7 +113,7 @@ class Exp_1():
         for s_version, solver in mo_versions:
             data = Solver_Data()
             data.solver = solver
-            data.params = {"input": config, "objective": obj_func}
+            data.params = {"input": input, "objective": obj_func}
             data.title = "genetic_mo"
             data.version = s_version
             data.nb_nodes = nb_nodes
@@ -125,7 +126,7 @@ class Exp_1():
             obj_func = getattr(metric, obj_func_name)
             data = Solver_Data()
             data.solver = algo.genetic
-            data.params = {"input": config, "objective": obj_func}
+            data.params = {"input": input, "objective": obj_func}
             data.title = "genetic"
             data.version = obj_title
             data.nb_nodes = nb_nodes

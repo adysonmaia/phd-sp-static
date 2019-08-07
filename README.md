@@ -8,9 +8,15 @@ $ python setup.py install
 ```
 3. Add `yourCPLEXhome/cplex/python/VERSION/PLATFORM/` in the environment variable `PYTHONPATH`, if necessary
 4. Install required packages
+  - For Python 2
 ```sh
 $ pip install -r requirements.txt
 ```
+  - For Python 3
+```sh
+$ pip3 install -r requirements_3.txt
+```
+
 
 ## Execute Experiments
 ```sh

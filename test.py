@@ -2,7 +2,7 @@ import random
 import numpy as np
 import sys
 import time
-from util import input
+from util import generator
 from algo.util.metric import Metric
 import algo
 
@@ -18,19 +18,23 @@ def exp_3(args=[]):
     if len(args) >= 3:
         nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
 
-    config = input.Input("input.json")
+    input_filename = "input.json"
 
     r_elite_prob = [0.5, 0.7, 0.9]
     r_elite_prop = [0.1, 0.3, 0.5, 0.7, 0.9]
 
     for run in range(nb_runs):
-        config.gen_rand_data(nb_nodes, nb_apps, nb_users)
-        metric = Metric(config)
+        input = generator.InputGenerator().gen_from_file(
+            input_filename, nb_nodes, nb_apps, nb_users
+        )
+        metric = Metric(input)
         for elite_proportion in r_elite_prop:
             for elite_probability in r_elite_prob:
-                solution = algo.genetic.solve(config,
-                                              elite_proportion=elite_proportion,
-                                              elite_probability=elite_proportion)
+                solution = algo.genetic.solve(
+                    input,
+                    elite_proportion=elite_proportion,
+                    elite_probability=elite_proportion
+                )
                 value = metric.get_qos_violation(*solution.get_vars())
                 print(run, elite_proportion, elite_probability, value)
 
@@ -45,9 +49,11 @@ def exp_2(args=[]):
     if len(args) >= 3:
         nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
 
-    config = input.Input("input.json")
-    config.gen_rand_data(nb_nodes, nb_apps, nb_users)
-    metric = Metric(config)
+    input_filename = "input.json"
+    input = generator.InputGenerator().gen_from_file(
+        input_filename, nb_nodes, nb_apps, nb_users
+    )
+    metric = Metric(input)
 
     metrics = [("max e", metric.get_qos_violation),
                ("avg e", metric.get_avg_deadline_violation),
@@ -70,13 +76,13 @@ def exp_2(args=[]):
     solutions = [("cloud", algo.cloud),
                  # ("milp", algo.milp),
                  ("genetic", algo.genetic),
-                 # ("cluster", algo.cluster),
+                 ("cluster", algo.cluster),
                  # ("cluster 2", algo.cluster_2)
                  ]
 
     for title, solver in solutions:
         start_time = time.time()
-        solution = solver.solve(config)
+        solution = solver.solve(input)
         elapsed_time = round(time.time() - start_time, 4)
         print(title)
         print("\t {:15} : {} s".format("time", elapsed_time))

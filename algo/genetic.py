@@ -23,15 +23,10 @@ class SP_Chromosome(Chromosome, SP_Solver):
 
         self.requests = []
         for a in r_apps:
-            app = self.apps[a]
-            rate = app.request_rate
             for b in r_nodes:
-                nb_users = self.get_nb_users(a, b)
-                nb_requests = int(math.ceil(nb_users * rate))
-                self.requests += [(a, b)] * nb_requests
+                self.requests += [(a, b)] * self.get_nb_requests(a, b)
 
         self.nb_genes = nb_apps * (nb_nodes + 1) + len(self.requests)
-        # print(len(self.requests), self.nb_genes)
 
     def gen_init_population(self):
         indiv = [0] * self.nb_genes
