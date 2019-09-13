@@ -22,8 +22,14 @@ class Input:
     def get_cloud_index(self):
         return len(self.nodes) - 1
 
+    def get_cloud_node(self):
+        return self.nodes[-1]
+
     def get_core_index(self):
         return len(self.nodes) - 2
+
+    def get_core_node(self):
+        return self.nodes[-2]
 
     def get_cpu_resource(self):
         return self.resources[CPU]

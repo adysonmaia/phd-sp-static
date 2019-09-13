@@ -44,9 +44,7 @@ class Exp_1():
             {"nodes": [27], "apps": [50], "users": [1000, 5000, 10000, 15000, 20000]},
         ]
 
-        self.objectives = [("max_e", "get_qos_violation"),
-                           ("cost", "get_cost"),
-                           ("avg_unavail", "get_avg_unavailability")]
+        self.objectives = [("max_e", "get_qos_violation")]
 
         self.metrics = [("max_e", "get_qos_violation"),
                         ("avg_e", "get_avg_deadline_violation"),
@@ -108,19 +106,16 @@ class Exp_1():
         data.run = run
         solvers.append(data)
 
-        obj_func = [getattr(metric, obj[1]) for obj in self.objectives]
-        mo_versions = [("v1", algo.genetic_mo), ("v2", algo.genetic_mo_2)]
-        for s_version, solver in mo_versions:
-            data = Solver_Data()
-            data.solver = solver
-            data.params = {"input": input, "objective": obj_func}
-            data.title = "genetic_mo"
-            data.version = s_version
-            data.nb_nodes = nb_nodes
-            data.nb_apps = nb_apps
-            data.nb_users = nb_users
-            data.run = run
-            solvers.append(data)
+        data = Solver_Data()
+        data.solver = algo.greedy
+        data.params = {"input": input}
+        data.title = "greedy"
+        data.version = ""
+        data.nb_nodes = nb_nodes
+        data.nb_apps = nb_apps
+        data.nb_users = nb_users
+        data.run = run
+        solvers.append(data)
 
         for obj_title, obj_func_name in self.objectives:
             obj_func = getattr(metric, obj_func_name)

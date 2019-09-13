@@ -12,8 +12,14 @@ class SP_Solver():
     def get_cloud_index(self):
         return self.input.get_cloud_index()
 
+    def get_cloud_node(self):
+        return self.input.get_cloud_node()
+
     def get_core_index(self):
         return self.input.get_core_index()
+
+    def get_core_node(self):
+        return self.input.get_cloud_node()
 
     def get_net_delay(self, app_index, node_1_index, node_2_index):
         app = self.apps[app_index]

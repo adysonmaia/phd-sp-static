@@ -5,6 +5,7 @@ INF = float("inf")
 class KMedoids():
     def __init__(self, max_iterations=300):
         self.max_iterations = max_iterations
+        self.last_metoids = []
 
     def fit(self, nb_clusters, data, distances):
         r_clusters = range(nb_clusters)
@@ -43,8 +44,12 @@ class KMedoids():
                 metoids[label] = metoid
 
             iter = iter + 1
+        self.last_metoids = metoids
 
         return clusters
+
+    def get_last_metoids(self):
+        return self.last_metoids
 
     # def _initial_metoids(self, nb_clusters, data, distances):
     #     metoids = random.sample(data, k=nb_clusters)

@@ -52,6 +52,7 @@ X_PARAM = {
 
 SOL_LABEL = {
     ('cloud', ''): r'Cloud',
+    ('greedy', ''): r'Greedy',
     ('genetic', 'max_e'): r'SO_dv',
     ('genetic', 'avg_rt'): r'SO_rt',
     ('genetic', 'cost'): r'SO_cost',
@@ -169,28 +170,18 @@ def exp_1(args=[]):
 
     metric_solutions = {
         'max_e': [
-            ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
             ('cloud', ''),
+            ('greedy', ''),
             ('genetic', 'max_e'),
-        ],
-        'cost': [
-            ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
-            ('cloud', ''),
-            ('genetic', 'cost'),
-        ],
-        'avg_avail': [
-            ('genetic_mo', 'v1'), ('genetic_mo', 'v2'),
-            ('cloud', ''),
-            ('genetic', 'avg_unavail'),
         ],
     }
 
     nodes = 27
-    # r_apps = [5, 25, 50, 75, 100]
-    # r_users = [1000, 5000, 10000, 15000, 20000]
+    r_apps = [5, 25, 50, 75, 100]
+    r_users = [1000, 5000, 10000, 15000, 20000]
 
-    r_apps = [10, 20, 30, 40, 50]
-    r_users = [1000, 4000, 7000, 10000]
+    # r_apps = [10, 20, 30, 40, 50]
+    # r_users = [1000, 4000, 7000, 10000]
 
     params = [
         {'field': 'apps',

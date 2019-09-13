@@ -12,10 +12,11 @@ class SP_NSGAII(NSGAII):
                  nb_generations,
                  elite_proportion,
                  mutant_proportion,
+                 elite_probability,
                  dominance_error):
 
         NSGAII.__init__(self, chromossome, population_size, nb_generations,
-                        elite_proportion, mutant_proportion)
+                        elite_proportion, mutant_proportion, elite_probability)
         self.dominance_error = dominance_error
 
     def _dominates(self, fitness_1, fitness_2):
@@ -46,9 +47,9 @@ class MO_Chromosome(SP_Chromosome, NSGAII_Chromosome):
 def solve(input,
           nb_generations=100,
           population_size=100,
-          elite_proportion=0.4,
-          mutant_proportion=0.3,
-          elite_probability=0.7,
+          elite_proportion=0.1,
+          mutant_proportion=0.2,
+          elite_probability=0.6,
           dominance_error=DOMINANCE_ERROR,
           objective=None):
 

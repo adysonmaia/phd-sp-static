@@ -20,8 +20,10 @@ def exp_3(args=[]):
 
     input_filename = "input.json"
 
-    r_elite_prob = [0.5, 0.7, 0.9]
+    r_elite_prob = [0.5, 0.6, 0.7, 0.8, 0.9]
     r_elite_prop = [0.1, 0.3, 0.5, 0.7, 0.9]
+
+    results = {}
 
     for run in range(nb_runs):
         input = generator.InputGenerator().gen_from_file(
@@ -30,13 +32,33 @@ def exp_3(args=[]):
         metric = Metric(input)
         for elite_proportion in r_elite_prop:
             for elite_probability in r_elite_prob:
+                start_time = time.time()
                 solution = algo.genetic.solve(
                     input,
                     elite_proportion=elite_proportion,
-                    elite_probability=elite_proportion
+                    elite_probability=elite_probability,
+                    nb_generations=50,
+                    population_size=50
                 )
+                elapsed_time = round(time.time() - start_time, 4)
+
                 value = metric.get_qos_violation(*solution.get_vars())
-                print(run, elite_proportion, elite_probability, value)
+                key = (elite_proportion, elite_probability)
+                if key not in results:
+                    results[key] = []
+                results[key].append(value)
+
+                print("Prop: {} - Prob: {} - Value: {} - Time: {} - Run = {}".format(
+                    elite_proportion, elite_probability,
+                    value, elapsed_time, run
+                ))
+
+    print("\n\n")
+    for key, values in results.items():
+        avg_value = np.mean(values)
+        print("Prop: {} - Prob: {} - Avg Value: {}".format(
+            key[0], key[1], avg_value
+        ))
 
 
 def exp_2(args=[]):
@@ -75,6 +97,7 @@ def exp_2(args=[]):
 
     solutions = [("cloud", algo.cloud),
                  # ("milp", algo.milp),
+                 ("greedy", algo.greedy),
                  ("genetic", algo.genetic),
                  ("cluster", algo.cluster),
                  # ("cluster 2", algo.cluster_2)

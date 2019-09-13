@@ -118,8 +118,11 @@ class InputGenerator:
 
         max_instances = 0
         if "max_instances" in data:
-            percentage = get_float_param(data["max_instances"])
-            max_instances = int(round(percentage * self.nb_nodes))
+            max_instances = get_float_param(data["max_instances"])
+            if max_instances > 1.0:
+                max_instances = int(round(max_instances))
+            else:
+                max_instances = int(round(max_instances * self.nb_nodes))
             max_instances = max(1, max_instances)
         else:
             max_instances = random.randint(1, self.nb_nodes)

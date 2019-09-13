@@ -11,7 +11,8 @@ class Cluster(SP_Solver):
 
         if not solver:
             # solver = algo.genetic_mo
-            solver = algo.milp
+            # solver = algo.milp
+            solver = algo.genetic
         self.solver = solver
         if not solver_params:
             solver_params = {}
@@ -48,8 +49,15 @@ class Cluster(SP_Solver):
         distances = [[app.get_net_delay(i, j)
                       for j in self.nodes]
                      for i in self.nodes]
-
         features = list(filter(lambda h: app.get_users(self.nodes[h]) > 0, r_nodes))
+
+        kmedoids = KMedoids()
+        nb_clusters = self._select_nb_clusters(app_index, features, distances)
+        clusters = kmedoids.fit(nb_clusters, features, distances)
+        return self._gen_clusters_data(app_index, clusters)
+
+    def _select_nb_clusters(self, app_index, features, distances):
+        app = self.apps[app_index]
         max_nb_clusters = min(len(features), app.max_instances)
 
         kmedoids = KMedoids()
@@ -63,8 +71,7 @@ class Cluster(SP_Solver):
                     max_score = score
                     nb_clusters = k
 
-        clusters = kmedoids.fit(nb_clusters, features, distances)
-        return self._gen_clusters_data(app_index, clusters)
+        return nb_clusters
 
     def _gen_clusters_data(self, app_index, clusters):
         nb_clusters = len(clusters)

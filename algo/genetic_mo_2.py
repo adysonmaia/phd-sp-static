@@ -6,9 +6,9 @@ from algo.genetic_mo import MO_Chromosome
 def solve(input,
           nb_generations=100,
           population_size=100,
-          elite_proportion=0.4,
-          mutant_proportion=0.3,
-          elite_probability=0.7,
+          elite_proportion=0.1,
+          mutant_proportion=0.2,
+          elite_probability=0.6,
           objective=None):
 
     chromossome = MO_Chromosome(input, objective)
