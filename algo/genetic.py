@@ -2,9 +2,13 @@ import math
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from algo.util.brkga import Chromosome, BRKGA
+from algo.util import ga_bootstrap
+import numpy
 
 INF = float("inf")
-POOL_SIZE = 0
+POOL_SIZE = 4
+DEFAULT_STALL_WINDOW = 30
+DEFAULT_STALL_THRESHOLD = 0.0
 
 
 class SP_Chromosome(Chromosome, SP_Solver):
@@ -28,21 +32,50 @@ class SP_Chromosome(Chromosome, SP_Solver):
 
         self.nb_genes = nb_apps * (nb_nodes + 1) + len(self.requests)
 
-    def gen_init_population(self):
-        indiv_0 = [0] * self.nb_genes
-        indiv_1 = self._gen_greedy_individual()
+        self.stall_window = DEFAULT_STALL_WINDOW
+        self.stall_threshold = DEFAULT_STALL_THRESHOLD
 
-        return [indiv_0, indiv_1]
+    def init_params(self):
+        Chromosome.init_params(self)
+        self._best_values = []
+
+    def gen_init_population(self):
+        indiv_list = [
+            ga_bootstrap.create_individual_cloud(self),
+            ga_bootstrap.create_individual_avg_delay(self),
+            ga_bootstrap.create_individual_cluster(self),
+            ga_bootstrap.create_individual_user(self),
+            ga_bootstrap.create_individual_capacity(self)
+        ]
+        merged_indiv = []
+        for indiv_1 in indiv_list:
+            for indiv_2 in indiv_list:
+                if indiv_1 == indiv_2:
+                    continue
+                w_1 = 0.5
+                w_2 = 1.0 - w_1
+                indiv = list(map(lambda i, j: w_1 * i + w_2 * j, indiv_1, indiv_2))
+                merged_indiv.append(indiv)
+        indiv_list.extend(merged_indiv)
+        return indiv_list
 
     def stopping_criteria(self, population):
         best_indiv = population[0]
         best_value = best_indiv[self.nb_genes]
-        return best_value == 0.0
+
+        variance = self.stall_threshold + 1
+        self._best_values.append(best_value)
+        if len(self._best_values) > self.stall_window:
+            max_value = float(max(self._best_values))
+            values = self._best_values[-1 * self.stall_window:]
+            values = list(map(lambda i: i / max_value, values))
+            variance = numpy.var(values)
+
+        return best_value == 0.0 or variance <= self.stall_threshold
 
     def fitness(self, individual):
         result = self.decode(individual)
-        value = self.objective(*result)
-        return value
+        return self.objective(*result)
 
     def decode(self, individual):
         nb_apps = len(self.apps)
@@ -70,6 +103,7 @@ class SP_Chromosome(Chromosome, SP_Solver):
             start = nb_apps + a * nb_nodes
             end = start + nb_nodes
             priority = individual[start:end]
+
             nodes = list(r_nodes)
             nodes.sort(key=lambda v: priority[v], reverse=True)
             percentage = individual[a]
@@ -126,57 +160,6 @@ class SP_Chromosome(Chromosome, SP_Solver):
             proc_delay = INF
 
         return net_delay + proc_delay
-
-    def _gen_greedy_individual(self):
-        """Create an individual that is decoded
-        to a similar solution of the greedy algorithm
-        See Also: greedy.py
-        """
-        nb_apps = len(self.apps)
-        r_apps = range(nb_apps)
-        nb_nodes = len(self.nodes)
-        r_nodes = range(nb_nodes)
-
-        indiv = [0] * self.nb_genes
-
-        max_deadline = 0.0
-        for a in r_apps:
-            indiv[a] = 1
-
-            deadline = self.apps[a].deadline
-            if deadline > max_deadline:
-                max_deadline = deadline
-
-            nodes_delay = []
-            max_delay = 0.0
-
-            for b in r_nodes:
-                avg_delay = 0.0
-                for h in r_nodes:
-                    avg_delay += self.get_net_delay(a, b, h)
-                avg_delay /= float(nb_nodes)
-                nodes_delay.append(avg_delay)
-                if avg_delay > max_delay:
-                    max_delay = avg_delay
-
-            if max_delay == 0.0:
-                max_delay = 1.0
-
-            for b in r_nodes:
-                key = nb_apps + b
-                value = nodes_delay[b] / float(max_delay)
-                indiv[key] = value
-
-        if max_deadline == 0.0:
-            max_deadline = 1.0
-
-        for r in range(len(self.requests)):
-            a, b = self.requests[r]
-            key = nb_apps * (nb_nodes + 1) + r
-            value = 1.0 - self.apps[a].deadline / float(max_deadline)
-            indiv[key] = value
-
-        return indiv
 
 
 def solve(input,

@@ -12,6 +12,7 @@ class Cluster(SP_Solver):
         if not solver:
             # solver = algo.genetic_mo
             # solver = algo.milp
+            # solver = algo.greedy
             solver = algo.genetic
         self.solver = solver
         if not solver_params:
@@ -49,7 +50,7 @@ class Cluster(SP_Solver):
         distances = [[app.get_net_delay(i, j)
                       for j in self.nodes]
                      for i in self.nodes]
-        features = list(filter(lambda h: app.get_users(self.nodes[h]) > 0, r_nodes))
+        features = list(filter(lambda h: app.get_nb_users(self.nodes[h]) > 0, r_nodes))
 
         kmedoids = KMedoids()
         nb_clusters = self._select_nb_clusters(app_index, features, distances)

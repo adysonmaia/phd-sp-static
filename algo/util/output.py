@@ -37,7 +37,7 @@ class Output:
             for b in r_nodes:
                 node_b = nodes[b]
                 rate = app.request_rate
-                nb_users = app.get_users(node_b)
+                nb_users = app.get_nb_users(node_b)
                 requests = int(math.ceil(nb_users * rate))
                 total_load = int(sum([load[a, b, h] for h in r_nodes]))
                 if requests != total_load:

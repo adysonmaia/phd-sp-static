@@ -6,3 +6,5 @@ from . import cluster
 from . import cluster_2
 from . import milp
 from . import greedy
+from . import genetic_cluster
+from . import bootstrap

@@ -67,9 +67,20 @@ class Greedy(SP_Solver):
 
         def avg_net_delay(h):
             avg_delay = 0.0
+            count = 0
             for b in r_nodes:
-                avg_delay += self.get_net_delay(a, b, h)
-            return avg_delay / float(nb_nodes)
+                if self.get_nb_users(a, b) > 0:
+                    avg_delay += self.get_net_delay(a, b, h)
+                    count += 1
+            if count > 0:
+                avg_delay = avg_delay / float(count)
+            return avg_delay
+
+        # def avg_net_delay(h):
+        #     avg_delay = 0.0
+        #     for b in r_nodes:
+        #         avg_delay += self.get_net_delay(a, b, h)
+        #     return avg_delay / float(nb_nodes)
 
         nodes_delay = [avg_net_delay(h) for h in r_nodes]
         sorted_nodes = sorted(r_nodes, key=lambda h: nodes_delay[h])

@@ -13,7 +13,7 @@ class Metric():
     def _get_nb_users(self, app_index, node_index):
         app = self.apps[app_index]
         node = self.nodes[node_index]
-        return app.get_users(node)
+        return app.get_nb_users(node)
 
     def _get_process_delay(self, place, load, app_index, node_index):
         r_nodes = range(len(self.nodes))

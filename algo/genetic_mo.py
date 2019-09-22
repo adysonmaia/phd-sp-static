@@ -3,6 +3,8 @@ from algo.util.nsgaii import NSGAII, NSGAII_Chromosome
 from algo.genetic import SP_Chromosome
 
 DOMINANCE_ERROR = 0.01
+STOP_THRESHOLD = 0.10
+POOL_SIZE = 4
 
 
 class SP_NSGAII(NSGAII):
@@ -13,10 +15,13 @@ class SP_NSGAII(NSGAII):
                  elite_proportion,
                  mutant_proportion,
                  elite_probability,
+                 pool_size,
+                 stop_threshold,
                  dominance_error):
 
         NSGAII.__init__(self, chromossome, population_size, nb_generations,
-                        elite_proportion, mutant_proportion, elite_probability)
+                        elite_proportion, mutant_proportion, elite_probability,
+                        pool_size, stop_threshold)
         self.dominance_error = dominance_error
 
     def _dominates(self, fitness_1, fitness_2):
@@ -51,6 +56,7 @@ def solve(input,
           mutant_proportion=0.2,
           elite_probability=0.6,
           dominance_error=DOMINANCE_ERROR,
+          stop_threshold=STOP_THRESHOLD,
           objective=None):
 
     chromossome = MO_Chromosome(input, objective)
@@ -59,8 +65,10 @@ def solve(input,
                         population_size=population_size,
                         elite_proportion=elite_proportion,
                         mutant_proportion=mutant_proportion,
-                        dominance_error=dominance_error,
-                        elite_probability=elite_probability)
+                        elite_probability=elite_probability,
+                        pool_size=POOL_SIZE,
+                        stop_threshold=stop_threshold,
+                        dominance_error=dominance_error)
 
     population = genetic.solve()
     result = chromossome.decode(population[0])

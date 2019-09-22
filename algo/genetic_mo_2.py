@@ -2,6 +2,8 @@ from algo.util.output import Output
 from algo.util.nsgaii import NSGAII
 from algo.genetic_mo import MO_Chromosome
 
+POOL_SIZE = 0
+
 
 def solve(input,
           nb_generations=100,
@@ -9,6 +11,7 @@ def solve(input,
           elite_proportion=0.1,
           mutant_proportion=0.2,
           elite_probability=0.6,
+          stop_threshold=0.10,
           objective=None):
 
     chromossome = MO_Chromosome(input, objective)
@@ -17,7 +20,9 @@ def solve(input,
                      population_size=population_size,
                      elite_proportion=elite_proportion,
                      mutant_proportion=mutant_proportion,
-                     elite_probability=elite_probability)
+                     elite_probability=elite_probability,
+                     pool_size=POOL_SIZE,
+                     stop_threshold=stop_threshold)
 
     population = genetic.solve()
     result = chromossome.decode(population[0])

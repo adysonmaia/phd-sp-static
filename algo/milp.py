@@ -29,7 +29,7 @@ class MILP(SP_Solver):
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
 
-        requests = [[int(math.ceil(app.get_users(node) * app.request_rate))
+        requests = [[app.get_nb_requests(node)
                      for node in self.nodes]
                     for app in self.apps]
         max_load = [sum(requests[a]) for a in r_apps]

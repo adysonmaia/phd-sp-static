@@ -31,6 +31,9 @@ class Input:
     def get_core_node(self):
         return self.nodes[-2]
 
+    def get_bs_nodes(self):
+        return self.nodes[:-2]
+
     def get_cpu_resource(self):
         return self.resources[CPU]
 
@@ -49,7 +52,7 @@ class Input:
         for app in apps:
             users = 0
             for node in nodes:
-                users += app.get_users(node)
+                users += app.get_nb_users(node)
             app.nb_users = users
             total_users += users
 
@@ -79,13 +82,14 @@ class App:
         self.request_rate = 0
         self.max_instances = 0
         self.availability = 0
-        self.nb_users = 0
         self.demand = {}
         self.net_delay = {}
-        self.users = {}
+        self.nb_users = 0
+        self.nb_node_users = {}
+        self.users = []
 
-    def get_users(self, node):
-        return self.users[node.id]
+    def get_nb_users(self, node):
+        return self.nb_node_users[node.id]
 
     def get_demand(self, resource_name):
         value = self.demand[resource_name]
@@ -111,8 +115,8 @@ class App:
     def get_net_delay(self, node_i, node_j):
         return self.net_delay[node_i.id, node_j.id]
 
-    def get_requests(self, node):
-        return int(math.ceil(self.get_users(node) * self.request_rate))
+    def get_nb_requests(self, node):
+        return int(math.ceil(self.get_nb_users(node) * self.request_rate))
 
 
 class Resource:
@@ -158,3 +162,11 @@ class Node:
 
     def is_base_station(self):
         return self.type.upper() == BS_TYPE
+
+
+class User:
+    def __init__(self):
+        self.id = 0
+        self.point = None
+        self.app_id = -1
+        self.node_id = -1

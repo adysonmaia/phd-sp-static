@@ -271,23 +271,33 @@ class InputGenerator:
             bound_box = point.calc_rect_bound_box(nb_bs)
         else:
             bound_box = point.calc_hex_bound_box(nb_bs)
+        self.input.bs_bound_box = bound_box
 
-        bs_nodes = list(filter(lambda n: n.type == "BS", self.input.nodes))
+        bs_nodes = self.input.get_bs_nodes()
+        user_id = 0
         for app in self.input.apps:
             points = self._gen_points(app.nb_users, distributions, bound_box)
-            app.users = {n.id: 0 for n in self.input.nodes}
+            app.nb_node_users = {n.id: 0 for n in self.input.nodes}
+            app.users = []
             for p in points:
                 min_dist = INF
-                min_bs = None
+                selected_node = None
                 for bs in bs_nodes:
                     dist = INF
                     if bs.point is not None:
                         dist = p.get_distance(bs.point)
                     if dist < min_dist:
                         min_dist = dist
-                        min_bs = bs
+                        selected_node = bs
 
-                app.users[min_bs.id] += 1
+                user = model.User()
+                user.id = user_id
+                user.app_id = app.id
+                user.node_id = selected_node.id
+                user.point = p
+                app.users.append(user)
+                app.nb_node_users[selected_node.id] += 1
+                user_id += 1
 
         return
 

@@ -89,19 +89,24 @@ def exp_2(args=[]):
                ("max unavail", metric.get_max_unavailability),
                ("avg unavail", metric.get_avg_unavailability)]
 
-    # solutions = [("cloud", algo.cloud),
-    #              ("genetic", algo.genetic),
-    #              ("genetic mo", algo.genetic_mo),
-    #              ("genetic mo 2", algo.genetic_mo_2),
-    #              ("cluster", algo.cluster)]
-
     solutions = [("cloud", algo.cloud),
-                 # ("milp", algo.milp),
                  ("greedy", algo.greedy),
+                 # ("bootstrap", algo.bootstrap),
                  ("genetic", algo.genetic),
-                 ("cluster", algo.cluster),
-                 # ("cluster 2", algo.cluster_2)
+                 # ("genetic cluster", algo.genetic_cluster),
+                 # ("genetic mo", algo.genetic_mo),
+                 # ("genetic mo 2", algo.genetic_mo_2),
+                 # ("cluster", algo.cluster)
                  ]
+
+    # solutions = [("cloud", algo.cloud),
+    #              # ("milp", algo.milp),
+    #              ("greedy", algo.greedy),
+    #              ("genetic", algo.genetic),
+    #              ("genetic cluster", algo.genetic_cluster),
+    #              # ("cluster", algo.cluster),
+    #              # ("cluster 2", algo.cluster_2)
+    #              ]
 
     for title, solver in solutions:
         start_time = time.time()
