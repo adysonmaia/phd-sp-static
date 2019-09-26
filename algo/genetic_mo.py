@@ -36,9 +36,11 @@ class MO_Chromosome(SP_Chromosome, NSGAII_Chromosome):
         NSGAII_Chromosome.__init__(self)
         SP_Chromosome.__init__(self, input)
         if objectives is None:
-            objectives = [self.metric.get_max_deadline_violation,
-                          self.metric.get_cost,
-                          self.metric.get_avg_unavailability]
+            objectives = [
+                self.metric.get_max_deadline_violation,
+                self.metric.get_cost,
+                self.metric.get_avg_unavailability
+            ]
         self.objectives = objectives
 
     def stopping_criteria(self, population):
@@ -57,7 +59,8 @@ def solve(input,
           elite_probability=0.6,
           dominance_error=DOMINANCE_ERROR,
           stop_threshold=STOP_THRESHOLD,
-          objective=None):
+          objective=None,
+          pool_size=POOL_SIZE):
 
     chromossome = MO_Chromosome(input, objective)
     genetic = SP_NSGAII(chromossome,
@@ -66,8 +69,8 @@ def solve(input,
                         elite_proportion=elite_proportion,
                         mutant_proportion=mutant_proportion,
                         elite_probability=elite_probability,
-                        pool_size=POOL_SIZE,
                         stop_threshold=stop_threshold,
+                        pool_size=pool_size,
                         dominance_error=dominance_error)
 
     population = genetic.solve()

@@ -7,6 +7,61 @@ from algo.util.metric import Metric
 import algo
 
 
+def exp_4(args=[]):
+    random.seed(3)
+    np.random.seed(3)
+
+    nb_nodes = 27
+    nb_apps = 30
+    nb_users = 10000
+    if len(args) >= 3:
+        nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
+
+    input_filename = "input.json"
+    input = generator.InputGenerator().gen_from_file(
+        input_filename, nb_nodes, nb_apps, nb_users
+    )
+    metric = Metric(input)
+
+    metrics = [
+        ("max e", metric.get_qos_violation),
+        # ("avg e", metric.get_avg_deadline_violation),
+        # ("deadline sr", metric.get_deadline_satisfaction),
+        # ("avg rt", metric.get_avg_response_time),
+        # ("max usage", metric.get_max_resource_usage),
+        # ("avg usage", metric.get_avg_resource_usage),
+        # ("power", metric.get_power_comsumption),
+        ("cost", metric.get_cost),
+        ("avg avail", metric.get_avg_availability),
+        ("max unavail", metric.get_max_unavailability),
+        # ("avg unavail", metric.get_avg_unavailability)
+    ]
+
+    versions = [
+        ("cloud", 0),
+        ("avg delay", 1),
+        ("cluster", 2),
+        ("cluster 2", 3),
+        ("user", 4),
+        ("capacity", 5),
+        ("deadline", 6),
+        ("avg delay + deadline", 20),
+        ("cluster + deadline", 27),
+    ]
+
+    for title, version in versions:
+        start_time = time.time()
+        solution = algo.bootstrap.solve(input, version)
+        elapsed_time = round(time.time() - start_time, 4)
+        print("bootstrap {}: {}".format(version, title))
+        print("\t {:15} : {} s".format("time", elapsed_time))
+        print("\t {:15} : {}".format("valid", solution.is_valid()))
+
+        for m_title, m_func in metrics:
+            value = m_func(*solution.get_vars())
+            print("\t {:15} : {}".format(m_title, value))
+
+
 def exp_3(args=[]):
     random.seed()
     np.random.seed()
@@ -91,22 +146,17 @@ def exp_2(args=[]):
 
     solutions = [("cloud", algo.cloud),
                  ("greedy", algo.greedy),
+                 ("milp", algo.milp),
                  # ("bootstrap", algo.bootstrap),
                  ("genetic", algo.genetic),
+                 # ("genetic 2", algo.genetic_2),
                  # ("genetic cluster", algo.genetic_cluster),
+                 # ("genetic penality", algo.genetic_penality),
                  # ("genetic mo", algo.genetic_mo),
                  # ("genetic mo 2", algo.genetic_mo_2),
+                 # ("genetic mo 3", algo.genetic_mo_3),
                  # ("cluster", algo.cluster)
                  ]
-
-    # solutions = [("cloud", algo.cloud),
-    #              # ("milp", algo.milp),
-    #              ("greedy", algo.greedy),
-    #              ("genetic", algo.genetic),
-    #              ("genetic cluster", algo.genetic_cluster),
-    #              # ("cluster", algo.cluster),
-    #              # ("cluster 2", algo.cluster_2)
-    #              ]
 
     for title, solver in solutions:
         start_time = time.time()

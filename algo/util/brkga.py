@@ -65,16 +65,33 @@ class BRKGA:
         if self.elite_probability is None:
             self.elite_probability = self._elite_size / float(self.pop_size)
 
-        # Initialize parallelism pool
+        self.pool_size = pool_size
+        self._pool = None
+        self._map_func = None
+        self._fitness_func = None
+
+    def _init_params(self):
+        """Initialize parameters before starting the genetic algorithm
+        """
+        self._elite_size = int(round(self.elite_proportion * self.pop_size))
+        self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
+        self._init_pool()
+        self.chromossome.init_params()
+
+    def _init_pool(self):
+        """Initialize the multiprocessing pool
+        """
+        self._clean_pool()
+
         self._pool = None
         self._map_func = map
         self._fitness_func = self._get_fitness
-        if pool_size > 0:
+        if self.pool_size > 0:
             try:
                 # Require UNIX fork to work
                 mp_ctx = mp.get_context("fork")
-                pool_size = min(pool_size, mp_ctx.cpu_count())
-                self._pool = mp_ctx.Pool(processes=pool_size,
+                self.pool_size = min(self.pool_size, mp_ctx.cpu_count())
+                self._pool = mp_ctx.Pool(processes=self.pool_size,
                                          initializer=_init_pool,
                                          initargs=[self])
                 self._map_func = self._pool.map
@@ -82,12 +99,14 @@ class BRKGA:
             except ValueError:
                 pass
 
-    def _init_params(self):
-        """Initialize parameters before starting the genetic algorithm
+    def _clean_pool(self):
+        """Terminate the multiprocessing pool
         """
-        self._elite_size = int(round(self.elite_proportion * self.pop_size))
-        self._mutant_size = int(round(self.mutant_proportion * self.pop_size))
-        self.chromossome.init_params()
+        if self._pool is not None:
+            self._pool.terminate()
+            self._pool = None
+            self._map_func = None
+            self._fitness_func = None
 
     def _stopping_criteria(self, population):
         """Verify whether the GA should stop or not
@@ -193,8 +212,7 @@ class BRKGA:
 
         # Get indivuals by crossover operation
         non_elite = current_ranked_pop[self._elite_size:]
-        cross_size = self.pop_size - self._elite_size - self._mutant_size
-        for i in range(cross_size):
+        while len(next_population) < self.pop_size:
             indiv_1 = random.choice(elite)
             indiv_2 = random.choice(non_elite)
             offspring = self._crossover(indiv_1, indiv_2,
@@ -217,10 +235,9 @@ class BRKGA:
                     break
                 pop = self._gen_next_population(pop)
         except KeyboardInterrupt:
-            if self._pool:
-                self._pool.terminate()
             raise
         finally:
+            self._clean_pool()
             return pop
 
 
@@ -274,12 +291,14 @@ class Chromosome():
             prob_1, prob_2 = prob_2, prob_1
 
         offspring_1 = indiv_1[:self.nb_genes]
+        offspring_2 = indiv_2[:self.nb_genes]
 
         for g in range(self.nb_genes):
-            if random.random() < prob_1:
+            if random.random() > prob_1:
                 offspring_1[g] = indiv_2[g]
+                offspring_2[g] = indiv_1[g]
 
-        return [offspring_1]
+        return [offspring_1, offspring_2]
 
     def stopping_criteria(self, population):
         """Verify whether the GA should stop or not

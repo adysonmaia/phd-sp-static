@@ -12,9 +12,11 @@ DEFAULT_STALL_THRESHOLD = 0.0
 
 
 class SP_Chromosome(Chromosome, SP_Solver):
-    def __init__(self, input, objective=None):
+    def __init__(self, input, objective=None, use_bootstrap=True):
         Chromosome.__init__(self)
         SP_Solver.__init__(self, input)
+
+        self.use_bootstrap = use_bootstrap
 
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
@@ -40,12 +42,17 @@ class SP_Chromosome(Chromosome, SP_Solver):
         self._best_values = []
 
     def gen_init_population(self):
+        if not self.use_bootstrap:
+            return []
+
         indiv_list = [
             ga_bootstrap.create_individual_cloud(self),
             ga_bootstrap.create_individual_avg_delay(self),
             ga_bootstrap.create_individual_cluster(self),
+            ga_bootstrap.create_individual_cluster_2(self),
             ga_bootstrap.create_individual_user(self),
-            ga_bootstrap.create_individual_capacity(self)
+            ga_bootstrap.create_individual_capacity(self),
+            ga_bootstrap.create_individual_deadline(self)
         ]
         merged_indiv = []
         for indiv_1 in indiv_list:
@@ -72,6 +79,8 @@ class SP_Chromosome(Chromosome, SP_Solver):
             variance = numpy.var(values)
 
         return best_value == 0.0 or variance <= self.stall_threshold
+        # print("{}\t{}".format(len(self._best_values), best_value))
+        # return best_value == 0.0
 
     def fitness(self, individual):
         result = self.decode(individual)
@@ -121,7 +130,8 @@ class SP_Chromosome(Chromosome, SP_Solver):
         for req in s_requests:
             a, b = self.requests[req]
             nodes = list(selected_nodes[a])
-            nodes.sort(key=lambda h: self._node_priority(individual, a, b, h, app_load))
+            nodes.sort(key=lambda h: self._node_priority(individual,
+                                                         a, b, h, app_load))
             nodes.append(cloud)
             for h in nodes:
                 fit = True
@@ -168,16 +178,20 @@ def solve(input,
           elite_proportion=0.1,
           mutant_proportion=0.2,
           elite_probability=0.6,
-          objective=None):
+          objective=None,
+          use_bootstrap=True,
+          pool_size=POOL_SIZE):
 
-    chromossome = SP_Chromosome(input, objective)
+    chromossome = SP_Chromosome(input,
+                                objective=objective,
+                                use_bootstrap=use_bootstrap)
     genetic = BRKGA(chromossome,
                     nb_generations=nb_generations,
                     population_size=population_size,
                     elite_proportion=elite_proportion,
                     mutant_proportion=mutant_proportion,
                     elite_probability=elite_probability,
-                    pool_size=POOL_SIZE)
+                    pool_size=pool_size)
 
     population = genetic.solve()
     result = chromossome.decode(population[0])

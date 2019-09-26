@@ -50,11 +50,11 @@ def create_individual_avg_delay(chromosome):
             value = 1.0 - nodes_delay[h] / float(max_delay)
             indiv[key] = value
 
-    for (req_index, req) in enumerate(chromosome.requests):
-        a, b = req
-        key = nb_apps * (nb_nodes + 1) + req_index
-        value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-        indiv[key] = value
+    # for (req_index, req) in enumerate(chromosome.requests):
+    #     a, b = req
+    #     key = nb_apps * (nb_nodes + 1) + req_index
+    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
+    #     indiv[key] = value
 
     return indiv
 
@@ -69,6 +69,7 @@ def create_individual_cluster(chromosome):
     r_apps = range(nb_apps)
     nb_nodes = len(chromosome.nodes)
     r_nodes = range(nb_nodes)
+    kmedoids = KMedoids()
 
     indiv = [0] * chromosome.nb_genes
     max_deadline = 1.0
@@ -84,10 +85,8 @@ def create_individual_cluster(chromosome):
                       for j in chromosome.nodes]
                      for i in chromosome.nodes]
         features = list(filter(lambda h: app.get_nb_users(chromosome.nodes[h]) > 0, r_nodes))
-
         max_nb_clusters = min(len(features), app.max_instances)
 
-        kmedoids = KMedoids()
         clusters = [list(r_nodes)]
         max_score = -1
         if max_nb_clusters > 1:
@@ -111,11 +110,55 @@ def create_individual_cluster(chromosome):
                     value = 1.0 - index / float(cluster_nb_instances)
                 indiv[key] = value
 
-    for (req_index, req) in enumerate(chromosome.requests):
-        a, b = req
-        key = nb_apps * (nb_nodes + 1) + req_index
-        value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-        indiv[key] = value
+    # for (req_index, req) in enumerate(chromosome.requests):
+    #     a, b = req
+    #     key = nb_apps * (nb_nodes + 1) + req_index
+    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
+    #     indiv[key] = value
+
+    return indiv
+
+
+def create_individual_cluster_2(chromosome):
+    """Create an individual based on k-medoids clustering
+    The idea is the users of an application are grouped
+    and central nodes of each group are prioritized.
+    It also prioritizes requests with strict deadlines
+    """
+    nb_apps = len(chromosome.apps)
+    r_apps = range(nb_apps)
+    nb_nodes = len(chromosome.nodes)
+    r_nodes = range(nb_nodes)
+    kmedoids = KMedoids()
+
+    indiv = [0] * chromosome.nb_genes
+    max_deadline = 1.0
+
+    for a in r_apps:
+        indiv[a] = 1.0
+        app = chromosome.apps[a]
+        deadline = app.deadline
+        if deadline > max_deadline:
+            max_deadline = deadline
+
+        distances = [[app.get_net_delay(i, j)
+                      for j in chromosome.nodes]
+                     for i in chromosome.nodes]
+        features = list(filter(lambda h: app.get_nb_users(chromosome.nodes[h]) > 0, r_nodes))
+
+        nb_clusters = min(len(features), app.max_instances)
+        kmedoids.fit(nb_clusters, features, distances)
+        metoids = kmedoids.get_last_metoids()
+        for h in metoids:
+            key = nb_apps + a * nb_nodes + h
+            value = 1.0
+            indiv[key] = value
+
+    # for (req_index, req) in enumerate(chromosome.requests):
+    #     a, b = req
+    #     key = nb_apps * (nb_nodes + 1) + req_index
+    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
+    #     indiv[key] = value
 
     return indiv
 
@@ -152,9 +195,10 @@ def create_individual_user(chromosome):
     for (req_index, req) in enumerate(chromosome.requests):
         a, b = req
         key = nb_apps * (nb_nodes + 1) + req_index
-        value_1 = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-        value_2 = chromosome.get_nb_users(a, b) / float(max_nb_users)
-        value = 0.5 * value_1 + 0.5 * value_2
+        # value_1 = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
+        # value_2 = chromosome.get_nb_users(a, b) / float(max_nb_users)
+        # value = 0.5 * value_1 + 0.5 * value_2
+        value = chromosome.get_nb_users(a, b) / float(max_nb_users)
         indiv[key] = value
 
     return indiv
@@ -201,6 +245,33 @@ def create_individual_capacity(chromosome):
         for h in r_nodes:
             key = nb_apps + a * nb_nodes + h
             indiv[key] = node_priority[h]
+
+    # for (req_index, req) in enumerate(chromosome.requests):
+    #     a, b = req
+    #     key = nb_apps * (nb_nodes + 1) + req_index
+    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
+    #     indiv[key] = value
+
+    return indiv
+
+
+def create_individual_deadline(chromosome):
+    """Create an individual that priorizes request
+    with strict response deadline
+    """
+    nb_apps = len(chromosome.apps)
+    r_apps = range(nb_apps)
+    nb_nodes = len(chromosome.nodes)
+
+    indiv = [0] * chromosome.nb_genes
+    max_deadline = 1.0
+
+    for a in r_apps:
+        indiv[a] = 1.0
+        app = chromosome.apps[a]
+        deadline = app.deadline
+        if deadline > max_deadline:
+            max_deadline = deadline
 
     for (req_index, req) in enumerate(chromosome.requests):
         a, b = req
