@@ -7,6 +7,51 @@ from algo.util.metric import Metric
 import algo
 
 
+def exp_5(args=[]):
+    random.seed(3)
+    np.random.seed(3)
+
+    nb_nodes = 27
+    nb_apps = 10
+    nb_users = 1000
+    if len(args) >= 3:
+        nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
+
+    input_filename = "input.json"
+    input = generator.InputGenerator().gen_from_file(
+        input_filename, nb_nodes, nb_apps, nb_users
+    )
+    metric = Metric(input)
+
+    metrics = [("max e", metric.get_qos_violation),
+               ("cost", metric.get_cost),
+               ("avg unavail", metric.get_avg_unavailability)]
+
+    solutions = [("cloud", algo.cloud),
+                 ("greedy", algo.greedy),
+                 ("genetic", algo.genetic),
+                 ]
+
+    app_types = ["all", "eMBB", "URLLC", "mMTC"]
+
+    for title, solver in solutions:
+        start_time = time.time()
+        solution = solver.solve(input)
+        elapsed_time = round(time.time() - start_time, 4)
+        print(title)
+        print("\t {:22} : {} s".format("time", elapsed_time))
+        print("\t {:22} : {}".format("valid", solution.is_valid()))
+
+        for type in app_types:
+            metric.filter.clean()
+            if type != "all":
+                metric.filter.set_app_type(type)
+
+            for m_title, m_func in metrics:
+                value = m_func(*solution.get_vars())
+                print("\t {:15} {:6} : {}".format(m_title, type, value))
+
+
 def exp_4(args=[]):
     random.seed(3)
     np.random.seed(3)
@@ -25,16 +70,8 @@ def exp_4(args=[]):
 
     metrics = [
         ("max e", metric.get_qos_violation),
-        # ("avg e", metric.get_avg_deadline_violation),
-        # ("deadline sr", metric.get_deadline_satisfaction),
-        # ("avg rt", metric.get_avg_response_time),
-        # ("max usage", metric.get_max_resource_usage),
-        # ("avg usage", metric.get_avg_resource_usage),
-        # ("power", metric.get_power_comsumption),
         ("cost", metric.get_cost),
-        ("avg avail", metric.get_avg_availability),
-        ("max unavail", metric.get_max_unavailability),
-        # ("avg unavail", metric.get_avg_unavailability)
+        ("avg unavail", metric.get_avg_unavailability)
     ]
 
     versions = [

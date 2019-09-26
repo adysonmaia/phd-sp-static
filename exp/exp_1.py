@@ -8,7 +8,7 @@ from algo.util.metric import Metric
 import algo
 
 EXP_POOL_SIZE = 3
-GA_POOL_SIZE = 2
+GA_POOL_SIZE = 3
 
 
 def exec_solver(solver_data):
@@ -47,14 +47,15 @@ class Exp_1():
         ]
 
         self.objectives = [
-            ("max_e", "get_qos_violation"),
-            ("cost", "get_cost"),
-            ("avg_unavail", "get_avg_unavailability")
+            ("max_dv", "get_max_deadline_violation"),
         ]
 
         self.metrics = [
-            ("max_e", "get_qos_violation"),
-            ("cost", "get_cost"),
+            ("max_dv", "get_max_deadline_violation"),
+            ("avg_dv", "get_avg_deadline_violation"),
+            ("dsr", "get_deadline_satisfaction"),
+            ("avg_rt", "get_avg_response_time"),
+            ("cost", "get_overall_cost"),
             ("avg_unavail", "get_avg_unavailability")
         ]
 
@@ -63,7 +64,8 @@ class Exp_1():
     def run(self):
         with open(self.output_filename, "w") as csv_file:
             field_names = [
-                "nodes", "apps", "users", "run", "solution", "version", "time"
+                "nodes", "apps", "users", "run", "solution", "version",
+                "time", "objective"
             ]
             for m_title, m_func_name in self.metrics:
                 field_names.append(m_title)
@@ -127,8 +129,9 @@ class Exp_1():
                     "version": ver_code,
                     "objective": obj_func
                 }
-                data.title = "bootstrap_" + ver_title
-                data.version = obj_title
+                data.title = "bootstrap"
+                data.version = ver_title
+                data.objective = obj_title
                 data.nb_nodes = nb_nodes
                 data.nb_apps = nb_apps
                 data.nb_users = nb_users
@@ -144,7 +147,8 @@ class Exp_1():
                 "pool_size": GA_POOL_SIZE
             }
             data.title = "genetic"
-            data.version = obj_title
+            data.version = ""
+            data.objective = obj_title
             data.nb_nodes = nb_nodes
             data.nb_apps = nb_apps
             data.nb_users = nb_users
@@ -159,8 +163,9 @@ class Exp_1():
                 "use_bootstrap": True,
                 "pool_size": GA_POOL_SIZE
             }
-            data.title = "genetic_bootstrap"
-            data.version = obj_title
+            data.title = "genetic"
+            data.version = "bootstrap"
+            data.objective = obj_title
             data.nb_nodes = nb_nodes
             data.nb_apps = nb_apps
             data.nb_users = nb_users
@@ -177,7 +182,8 @@ class Exp_1():
             "run": data.run,
             "solution": data.title,
             "version": data.version,
-            "time": data.time
+            "time": data.time,
+            "objective": data.objective,
         }
 
         for m_title, m_func_name in self.metrics:
@@ -203,6 +209,7 @@ class Exp_1():
                output["apps"], output["users"], output["run"]
         ))
         print("\t {:15} : {} s".format("time", output["time"]))
+        print("\t {:15} : {}".format("objective", output["objective"]))
 
         for m_title, m_name in self.metrics:
             print("\t {:15} : {}".format(m_title, output[m_title]))
