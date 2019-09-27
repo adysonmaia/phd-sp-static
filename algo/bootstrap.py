@@ -24,7 +24,7 @@ def solve(input, version=2, objective=None):
             func_1 = solver_versions[func_1_index]
             func_2_index = version % nb_versions
             func_2 = solver_versions[func_2_index]
-            # print(func_1.__name__, func_2.__name__)
+            print(func_1.__name__, func_2.__name__)
 
             return ga_bootstrap.merge_individual(c, func_1, func_2)
         solver = mixer_criation

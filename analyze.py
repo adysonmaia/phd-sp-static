@@ -2,7 +2,7 @@ import sys
 
 
 def exp_1(args=[]):
-    import exp.exp_1
+    import exp.analyze_1
     exp.analyze_1.run()
 
 

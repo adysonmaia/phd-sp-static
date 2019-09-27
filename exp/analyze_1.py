@@ -5,7 +5,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-DPI = 50
+DPI = 100
+
+LINE_FORMATS = [
+    '-o',   '-s',  '-D',  '-^',  '-v',  '-<', '->',
+    # '--o', '--s', '--D', '--^', '--v', '--<', '-->',
+    # '-.o', '-.s', '-.D', '-.^', '-.v', '-.<', '-.>',
+]
 
 Y_PARAM = {
     'max_dv': {
@@ -52,14 +58,14 @@ X_PARAM = {
 SOL_LABEL = {
     ('bootstrap', 'cloud'): r'B. Cloud',
     ('bootstrap', 'avg_delay'): r'B. Avg. Delay',
-    ('bootstrap', 'avg_delay'): r'B. Avg. Delay',
     ('bootstrap', 'cluster'): r'B. Cluster',
     ('bootstrap', 'cluster_2'): r'B. Cluster 2',
     ('bootstrap', 'user'): r'B. User',
     ('bootstrap', 'capacity'): r'B. Capacity',
     ('bootstrap', 'deadline'): r'B. Deadline',
     ('bootstrap', 'avg_delay_deadline'): r'B. Avg. Delay + Deadline',
-    ('bootstrap', 'bootstrap_cluster_deadline'): r'B. Cluster + Deadline',
+    ('bootstrap', 'cluster_deadline'): r'B. Cluster + Deadline',
+    ('bootstrap', 'cluster_2_deadline'): r'B. Cluster 2 + Deadline',
     ('genetic', ''): r'Genetic',
     ('genetic', 'bootstrap'): r'Genetic + Bootstrap',
 }
@@ -127,7 +133,9 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
     plt.clf()
     matplotlib.rcParams.update({'font.size': 20})
     filtered = filter_data(data, **data_filter)
-    formats = ['-o', '-s', '-<', 'k-->', '-^', '-v', '-d']
+    # formats = ['-o', '-s', '-<', 'k-->', '-^', '-v', '-d']
+    # formats = ['-', '--', '-.', ':']
+    formats = LINE_FORMATS
     formats_len = len(formats)
     line = 0
     for solution, version in solutions:
@@ -150,7 +158,7 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
 
     # ncol = 4 if len(solutions) > 4 else 3
     ncol = 4
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12),
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.17),
                numpoints=1, ncol=ncol, columnspacing=0.5, fontsize=20)
     plt.subplots_adjust(bottom=0.2, top=0.97, left=0.12, right=0.96)
 
@@ -176,33 +184,30 @@ def run():
         'max_dv': [
             ('bootstrap', 'cloud'),
             ('bootstrap', 'avg_delay'),
-            ('bootstrap', 'avg_delay'),
             ('bootstrap', 'cluster'),
             ('bootstrap', 'cluster_2'),
             ('bootstrap', 'user'),
             ('bootstrap', 'capacity'),
             ('bootstrap', 'deadline'),
             ('bootstrap', 'avg_delay_deadline'),
-            ('bootstrap', 'bootstrap_cluster_deadline'),
+            ('bootstrap', 'cluster_deadline'),
             ('genetic', ''),
             ('genetic', 'bootstrap'),
         ],
     }
 
     nodes = 27
-    r_apps = [10, 20, 30, 40, 50]
-    r_users = [1000, 4000, 7000, 10000]
-
     params = [
         {'field': 'apps',
          'values': [50],
-         'x_values': r_users,
-         'x_field': 'users'
+         'x_field': 'users',
+         'x_values': [1000, 4000, 7000, 10000]
          },
         {'field': 'users',
          'values': [10000],
-         'x_values': r_apps,
-         'x_field': 'apps'
+         'x_field': 'apps',
+         # 'x_values': [10, 20, 30, 40, 50]
+         'x_values': [10, 30, 40, 50]
          },
     ]
 

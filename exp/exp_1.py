@@ -42,7 +42,7 @@ class Exp_1():
         self.output_filename = "exp/output/exp_1.csv"
 
         self.scenarios = [
-            {"nodes": [27], "apps": [10, 30, 40], "users": [10000]},
+            {"nodes": [27], "apps": [10, 20, 30, 40], "users": [10000]},
             {"nodes": [27], "apps": [50], "users": [1000, 4000, 7000, 10000]},
         ]
 
@@ -116,6 +116,7 @@ class Exp_1():
             ("deadline", 6),
             ("avg_delay_deadline", 20),
             ("cluster_deadline", 27),
+            ("cluster_2_deadline", 34),
         ]
 
         for obj_title, obj_func_name in self.objectives:

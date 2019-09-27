@@ -237,3 +237,4 @@ pip-selfcheck.json
 # End of https://www.gitignore.io/api/osx,linux,python,eclipse
 
 output/
+figs/

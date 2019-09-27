@@ -84,6 +84,7 @@ def exp_4(args=[]):
         ("deadline", 6),
         ("avg delay + deadline", 20),
         ("cluster + deadline", 27),
+        ("cluster 2 + deadline", 34),
     ]
 
     for title, version in versions:
