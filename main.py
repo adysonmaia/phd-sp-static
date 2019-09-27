@@ -6,6 +6,11 @@ def exp_1(args=[]):
     exp.exp_1.run()
 
 
+def exp_2(args=[]):
+    import exp.exp_2
+    exp.exp_2.run()
+
+
 if __name__ == '__main__':
     args = sys.argv[1:]
     experiment = args[0] if args else 'exp_1'

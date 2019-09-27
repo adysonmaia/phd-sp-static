@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from docplex.mp.model import Model
 from algo.util.sp import SP_Solver
@@ -7,17 +6,10 @@ from algo.util.output import Output
 INF = float("inf")
 E_MAX = 1000.0
 QUEUE_MIN_DIFF = 0.00001
-
-
-def _dot_product(v1, v2):
-    sum = 0
-    for i in range(len(v1)):
-        sum += v1[i] * v2[i]
-    return sum
+TIME_LIMIT = 600
 
 
 class MILP(SP_Solver):
-
     def __init__(self, input, time_limit=0):
         SP_Solver.__init__(self, input)
         self.time_limit = time_limit
@@ -173,7 +165,7 @@ class MILP(SP_Solver):
         return place, load, obj_value
 
 
-def solve(input, time_limit=600):
+def solve(input, time_limit=TIME_LIMIT):
     solver = MILP(input, time_limit)
     result = list(solver.solve())
     output = Output(input)

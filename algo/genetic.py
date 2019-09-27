@@ -47,23 +47,22 @@ class SP_Chromosome(Chromosome, SP_Solver):
 
         indiv_list = [
             ga_bootstrap.create_individual_cloud(self),
-            ga_bootstrap.create_individual_avg_delay(self),
-            ga_bootstrap.create_individual_cluster(self),
-            ga_bootstrap.create_individual_cluster_2(self),
-            ga_bootstrap.create_individual_user(self),
-            ga_bootstrap.create_individual_capacity(self),
+            ga_bootstrap.create_individual_net_delay(self),
+            ga_bootstrap.create_individual_cluster_metoids(self),
             ga_bootstrap.create_individual_deadline(self)
         ]
         merged_indiv = []
         for indiv_1 in indiv_list:
+            indiv = ga_bootstrap.invert_individual(self, indiv_1)
+            merged_indiv.append(indiv)
+
             for indiv_2 in indiv_list:
                 if indiv_1 == indiv_2:
                     continue
-                w_1 = 0.5
-                w_2 = 1.0 - w_1
-                indiv = list(map(lambda i, j: w_1 * i + w_2 * j, indiv_1, indiv_2))
+                indiv = ga_bootstrap.merge_population(self, [indiv_1, indiv_2])
                 merged_indiv.append(indiv)
-        indiv_list.extend(merged_indiv)
+        indiv_list += merged_indiv
+
         return indiv_list
 
     def stopping_criteria(self, population):

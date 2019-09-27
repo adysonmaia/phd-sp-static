@@ -30,7 +30,7 @@ class Solver_Data():
         pass
 
 
-class Exp_1():
+class Exp_2():
     def __init__(self):
         random.seed()
         np.random.seed()
@@ -38,8 +38,8 @@ class Exp_1():
         self.pool = ProcessPool(EXP_POOL_SIZE)
         self.nb_runs = 30
 
-        self.input_filename = "exp/input/exp_1.json"
-        self.output_filename = "exp/output/exp_1.csv"
+        self.input_filename = "exp/input/exp_2.json"
+        self.output_filename = "exp/output/exp_2.csv"
 
         self.scenarios = [
             {"nodes": [27], "apps": [10, 20, 30, 40], "users": [10000]},
@@ -47,7 +47,13 @@ class Exp_1():
             {"nodes": [6, 11, 18], "apps": [50], "users": [10000]},
         ]
 
-        self.objective = ("max_dv", "get_max_deadline_violation")
+        self.objectives = [
+            ("max_dv", "get_max_deadline_violation"),
+            ("cost", "get_overall_cost"),
+            ("avg_unavail", "get_avg_unavailability"),
+            ("avg_rt", "get_avg_response_time"),
+            ("power", "get_overall_power_comsumption"),
+        ]
 
         self.metrics = [
             ("max_dv", "get_max_deadline_violation"),
@@ -55,7 +61,8 @@ class Exp_1():
             ("dsr", "get_deadline_satisfaction"),
             ("avg_rt", "get_avg_response_time"),
             ("cost", "get_overall_cost"),
-            ("avg_unavail", "get_avg_unavailability")
+            ("avg_unavail", "get_avg_unavailability"),
+            ("power", "get_overall_power_comsumption"),
         ]
 
         self.app_types = ["eMBB", "URLLC", "mMTC"]
@@ -64,7 +71,7 @@ class Exp_1():
         with open(self.output_filename, "w") as csv_file:
             field_names = [
                 "nodes", "apps", "users", "run", "solution", "version",
-                "time", "objective"
+                "time"
             ]
             for m_title, m_func_name in self.metrics:
                 field_names.append(m_title)
@@ -103,84 +110,43 @@ class Exp_1():
             self.input_filename, nb_nodes, nb_apps, nb_users
         )
         metric = Metric(input)
-        obj_title, obj_func_name = self.objective
-        obj_func = getattr(metric, obj_func_name)
-
         solvers = []
 
-        bootstrap_versions = [
-            ("cloud", "cloud"),
-            ("net_delay", "net_delay"),
-            ("cluster", "cluster_metoids"),
-            ("deadline", "deadline"),
-            ("net_delay_deadline", ["net_delay", "deadline"]),
-            ("cluster_deadline", ["cluster_metoids", "deadline"]),
-        ]
-
-        for ver_title, ver_code in bootstrap_versions:
+        for obj_title, obj_func_name in self.objectives:
+            obj_func = getattr(metric, obj_func_name)
             data = Solver_Data()
-            data.solver = algo.bootstrap
+            data.solver = algo.genetic
             data.params = {
                 "input": input,
-                "version": ver_code,
-                "objective": obj_func
+                "objective": obj_func,
+                "use_bootstrap": True,
+                "pool_size": GA_POOL_SIZE
             }
-            data.title = "bootstrap"
-            data.version = ver_title
-            data.objective = obj_title
+            data.title = "genetic_so"
+            data.version = obj_title
             data.nb_nodes = nb_nodes
             data.nb_apps = nb_apps
             data.nb_users = nb_users
             data.run = run
             solvers.append(data)
 
-        data = Solver_Data()
-        data.solver = algo.milp
-        data.params = {
-            "input": input,
-        }
-        data.title = "milp"
-        data.version = ""
-        data.objective = obj_title
-        data.nb_nodes = nb_nodes
-        data.nb_apps = nb_apps
-        data.nb_users = nb_users
-        data.run = run
-        solvers.append(data)
-
-        data = Solver_Data()
-        data.solver = algo.genetic
-        data.params = {
-            "input": input,
-            "objective": obj_func,
-            "use_bootstrap": False,
-            "pool_size": GA_POOL_SIZE
-        }
-        data.title = "genetic"
-        data.version = ""
-        data.objective = obj_title
-        data.nb_nodes = nb_nodes
-        data.nb_apps = nb_apps
-        data.nb_users = nb_users
-        data.run = run
-        solvers.append(data)
-
-        data = Solver_Data()
-        data.solver = algo.genetic
-        data.params = {
-            "input": input,
-            "objective": obj_func,
-            "use_bootstrap": True,
-            "pool_size": GA_POOL_SIZE
-        }
-        data.title = "genetic"
-        data.version = "bootstrap"
-        data.objective = obj_title
-        data.nb_nodes = nb_nodes
-        data.nb_apps = nb_apps
-        data.nb_users = nb_users
-        data.run = run
-        solvers.append(data)
+        obj_func = [getattr(metric, obj[1]) for obj in self.objectives]
+        mo_versions = [("v1", algo.genetic_mo), ("v2", algo.genetic_mo_2)]
+        for s_version, solver in mo_versions:
+            data = Solver_Data()
+            data.solver = solver
+            data.params = {
+                "input": input,
+                "objectives": obj_func,
+                "pool_size": GA_POOL_SIZE
+            }
+            data.title = "genetic_mo"
+            data.version = s_version
+            data.nb_nodes = nb_nodes
+            data.nb_apps = nb_apps
+            data.nb_users = nb_users
+            data.run = run
+            solvers.append(data)
 
         return solvers
 
@@ -192,8 +158,7 @@ class Exp_1():
             "run": data.run,
             "solution": data.title,
             "version": data.version,
-            "time": data.time,
-            "objective": data.objective,
+            "time": data.time
         }
 
         for m_title, m_func_name in self.metrics:
@@ -219,7 +184,6 @@ class Exp_1():
                output["apps"], output["users"], output["run"]
         ))
         print("\t {:15} : {} s".format("time", output["time"]))
-        print("\t {:15} : {}".format("objective", output["objective"]))
 
         for m_title, m_name in self.metrics:
             print("\t {:15} : {}".format(m_title, output[m_title]))
@@ -229,7 +193,7 @@ class Exp_1():
 
 
 def run():
-    exp = Exp_1()
+    exp = Exp_2()
     exp.run()
 
 

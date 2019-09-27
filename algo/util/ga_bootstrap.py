@@ -9,9 +9,9 @@ def create_individual_cloud(chromosome):
     return [0] * chromosome.nb_genes
 
 
-def create_individual_avg_delay(chromosome):
+def create_individual_net_delay(chromosome):
     """Create an individual that prioritizes nodes having
-    shorter avg. delays to other nodes
+    shorter avg. net delays to other nodes
     and requests with strict deadlines
     """
     nb_apps = len(chromosome.apps)
@@ -20,18 +20,11 @@ def create_individual_avg_delay(chromosome):
     r_nodes = range(nb_nodes)
 
     indiv = [0] * chromosome.nb_genes
-    max_deadline = 1.0
-
     for a in r_apps:
         indiv[a] = 1.0
 
-        deadline = chromosome.apps[a].deadline
-        if deadline > max_deadline:
-            max_deadline = deadline
-
         nodes_delay = []
         max_delay = 1.0
-
         for h in r_nodes:
             avg_delay = 0.0
             count = 0
@@ -50,12 +43,6 @@ def create_individual_avg_delay(chromosome):
             value = 1.0 - nodes_delay[h] / float(max_delay)
             indiv[key] = value
 
-    # for (req_index, req) in enumerate(chromosome.requests):
-    #     a, b = req
-    #     key = nb_apps * (nb_nodes + 1) + req_index
-    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-    #     indiv[key] = value
-
     return indiv
 
 
@@ -72,14 +59,9 @@ def create_individual_cluster(chromosome):
     kmedoids = KMedoids()
 
     indiv = [0] * chromosome.nb_genes
-    max_deadline = 1.0
-
     for a in r_apps:
         indiv[a] = 1.0
         app = chromosome.apps[a]
-        deadline = app.deadline
-        if deadline > max_deadline:
-            max_deadline = deadline
 
         distances = [[app.get_net_delay(i, j)
                       for j in chromosome.nodes]
@@ -110,16 +92,10 @@ def create_individual_cluster(chromosome):
                     value = 1.0 - index / float(cluster_nb_instances)
                 indiv[key] = value
 
-    # for (req_index, req) in enumerate(chromosome.requests):
-    #     a, b = req
-    #     key = nb_apps * (nb_nodes + 1) + req_index
-    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-    #     indiv[key] = value
-
     return indiv
 
 
-def create_individual_cluster_2(chromosome):
+def create_individual_cluster_metoids(chromosome):
     """Create an individual based on k-medoids clustering
     The idea is the users of an application are grouped
     and central nodes of each group are prioritized.
@@ -132,14 +108,10 @@ def create_individual_cluster_2(chromosome):
     kmedoids = KMedoids()
 
     indiv = [0] * chromosome.nb_genes
-    max_deadline = 1.0
 
     for a in r_apps:
         indiv[a] = 1.0
         app = chromosome.apps[a]
-        deadline = app.deadline
-        if deadline > max_deadline:
-            max_deadline = deadline
 
         distances = [[app.get_net_delay(i, j)
                       for j in chromosome.nodes]
@@ -153,12 +125,6 @@ def create_individual_cluster_2(chromosome):
             key = nb_apps + a * nb_nodes + h
             value = 1.0
             indiv[key] = value
-
-    # for (req_index, req) in enumerate(chromosome.requests):
-    #     a, b = req
-    #     key = nb_apps * (nb_nodes + 1) + req_index
-    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-    #     indiv[key] = value
 
     return indiv
 
@@ -235,22 +201,11 @@ def create_individual_capacity(chromosome):
         value = value / float(nb_resources)
         node_priority[h] = value
 
-    max_deadline = 1.0
     for a in r_apps:
         indiv[a] = 1.0
-        deadline = chromosome.apps[a].deadline
-        if deadline > max_deadline:
-            max_deadline = deadline
-
         for h in r_nodes:
             key = nb_apps + a * nb_nodes + h
             indiv[key] = node_priority[h]
-
-    # for (req_index, req) in enumerate(chromosome.requests):
-    #     a, b = req
-    #     key = nb_apps * (nb_nodes + 1) + req_index
-    #     value = 1.0 - chromosome.apps[a].deadline / float(max_deadline)
-    #     indiv[key] = value
 
     return indiv
 
@@ -282,12 +237,39 @@ def create_individual_deadline(chromosome):
     return indiv
 
 
-def merge_individual(chromosome, func_1, func_2, weight_1=0.5):
-    """Create an individual by merging the results of two creation function
+def invert_individual(chromosome, individual):
+    """Invert a individual representation
     """
-    indiv_1 = func_1(chromosome)
-    w_1 = weight_1
-    indiv_2 = func_2(chromosome)
-    w_2 = 1.0 - w_1
-    result_indiv = list(map(lambda i, j: w_1 * i + w_2 * j, indiv_1, indiv_2))
-    return result_indiv
+    indiv = individual[:chromosome.nb_genes]
+    return list(map(lambda i: 1.0 - i, indiv))
+
+
+def merge_population(chromosome, population, weights=None):
+    """Merge a list of individuals into a single one
+    """
+    nb_genes = chromosome.nb_genes
+    pop_size = len(population)
+    if weights is None:
+        weights = [1.0 / float(pop_size)] * pop_size
+
+    merged_indiv = [0] * nb_genes
+    for g in range(nb_genes):
+        value = 0.0
+        for i, indiv in enumerate(population):
+            value += weights[i] * indiv[g]
+        merged_indiv[g] = value
+
+    return merged_indiv
+
+
+def merge_creation_functions(chromosome, functions, weights=None):
+    """Create an individual by merging the results of
+    a list of creation functions
+    """
+    population = [f(chromosome) for f in functions]
+    if len(population) > 1:
+        return merge_population(chromosome, population, weights)
+    elif len(population) > 0:
+        return population[0]
+    else:
+        return None

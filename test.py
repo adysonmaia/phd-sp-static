@@ -75,16 +75,12 @@ def exp_4(args=[]):
     ]
 
     versions = [
-        ("cloud", 0),
-        ("avg delay", 1),
-        ("cluster", 2),
-        ("cluster 2", 3),
-        ("user", 4),
-        ("capacity", 5),
-        ("deadline", 6),
-        ("avg delay + deadline", 20),
-        ("cluster + deadline", 27),
-        ("cluster 2 + deadline", 34),
+        ("cloud", "cloud"),
+        ("net_delay", "net_delay"),
+        ("cluster", "cluster_metoids"),
+        ("deadline", "deadline"),
+        ("net_delay_deadline", ["net_delay", "deadline"]),
+        ("cluster_deadline", ["cluster_metoids", "deadline"]),
     ]
 
     for title, version in versions:
@@ -184,8 +180,8 @@ def exp_2(args=[]):
 
     solutions = [("cloud", algo.cloud),
                  ("greedy", algo.greedy),
-                 ("milp", algo.milp),
-                 # ("bootstrap", algo.bootstrap),
+                 # ("milp", algo.milp),
+                 ("bootstrap", algo.bootstrap),
                  ("genetic", algo.genetic),
                  # ("genetic 2", algo.genetic_2),
                  # ("genetic cluster", algo.genetic_cluster),

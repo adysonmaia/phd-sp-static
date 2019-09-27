@@ -28,7 +28,7 @@ Y_PARAM = {
     },
     'cost': {
         'label': 'Cost',
-        'limit': [0.0, 1500.0]
+        'limit': [0.0, 2500.0]
     },
     'max_unavail': {
         'label': 'Availability - %',
@@ -56,16 +56,13 @@ X_PARAM = {
 }
 
 SOL_LABEL = {
-    ('bootstrap', 'cloud'): r'B. Cloud',
-    ('bootstrap', 'avg_delay'): r'B. Avg. Delay',
-    ('bootstrap', 'cluster'): r'B. Cluster',
-    ('bootstrap', 'cluster_2'): r'B. Cluster 2',
-    ('bootstrap', 'user'): r'B. User',
-    ('bootstrap', 'capacity'): r'B. Capacity',
-    ('bootstrap', 'deadline'): r'B. Deadline',
-    ('bootstrap', 'avg_delay_deadline'): r'B. Avg. Delay + Deadline',
-    ('bootstrap', 'cluster_deadline'): r'B. Cluster + Deadline',
-    ('bootstrap', 'cluster_2_deadline'): r'B. Cluster 2 + Deadline',
+    ('milp', ''): r'MILP',
+    ('bootstrap', 'cloud'): r'Cloud',
+    ('bootstrap', 'net_delay'): r'Net Delay',
+    ('bootstrap', 'cluster'): r'Cluster',
+    ('bootstrap', 'deadline'): r'Deadline',
+    ('bootstrap', 'net_delay_deadline'): r'Net Delay + Deadline',
+    ('bootstrap', 'cluster_deadline'): r'Cluster + Deadline',
     ('genetic', ''): r'Genetic',
     ('genetic', 'bootstrap'): r'Genetic + Bootstrap',
 }
@@ -180,52 +177,54 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
 def run():
     data = get_data_from_file('exp/output/exp_1.csv')
 
+    all_solutions = [
+        ('bootstrap', 'cloud'),
+        ('bootstrap', 'net_delay'),
+        ('bootstrap', 'cluster'),
+        ('bootstrap', 'net_delay_deadline'),
+        ('bootstrap', 'cluster_deadline'),
+        ('milp', ''),
+        ('genetic', ''),
+        ('genetic', 'bootstrap'),
+    ]
+
     metric_solutions = {
-        'max_dv': [
-            ('bootstrap', 'cloud'),
-            ('bootstrap', 'avg_delay'),
-            ('bootstrap', 'cluster'),
-            ('bootstrap', 'cluster_2'),
-            ('bootstrap', 'user'),
-            ('bootstrap', 'capacity'),
-            ('bootstrap', 'deadline'),
-            ('bootstrap', 'avg_delay_deadline'),
-            ('bootstrap', 'cluster_deadline'),
-            ('genetic', ''),
-            ('genetic', 'bootstrap'),
-        ],
+        'max_dv': all_solutions,
+        'dsr': all_solutions,
+        'avg_rt': all_solutions,
+        'cost': all_solutions,
+        'avg_unavail': all_solutions
     }
 
-    nodes = 27
     params = [
-        {'field': 'apps',
-         'values': [50],
-         'x_field': 'users',
-         'x_values': [1000, 4000, 7000, 10000]
-         },
-        {'field': 'users',
-         'values': [10000],
-         'x_field': 'apps',
-         # 'x_values': [10, 20, 30, 40, 50]
-         'x_values': [10, 30, 40, 50]
-         },
+        {
+            'title': 'a_50_n_27',
+            'filter': {'apps': 50, 'nodes': 27},
+            'x_field': 'users',
+            'x_values': [1000, 4000, 7000, 10000]
+        },
+        {
+            'title': 'u_10k_n_27',
+            'filter': {'users': 10000, 'nodes': 27},
+            'x_field': 'apps',
+            'x_values': [10, 20, 30, 40, 50]
+        },
+        {
+            'title': 'a_50_u_10k',
+            'filter': {'apps': 50, 'users': 10000},
+            'x_field': 'nodes',
+            'x_values': [6, 11, 18, 27]
+        }
     ]
 
     for param in params:
-        for value in param['values']:
-            for metric, solutions in metric_solutions.items():
-                data_filter = {
-                    'nodes': nodes,
-                    'objective': metric,
-                    param['field']: value
-                }
-                x = param['x_values']
-                x_field = param['x_field']
-                filename = "exp/figs/exp_1/fig_{}_{}_{}.png".format(
-                    metric, param['field'], value
-                )
-                gen_figure(data, solutions, metric, x, x_field,
-                           data_filter, filename)
+        for metric, solutions in metric_solutions.items():
+            fig_title = params['title']
+            filter = params['filter']
+            x = param['x_values']
+            x_field = param['x_field']
+            filename = "exp/figs/exp_1/fig_{}_{}.png".format(metric, fig_title)
+            gen_figure(data, solutions, metric, x, x_field, filter, filename)
 
 
 if __name__ == '__main__':
