@@ -3,13 +3,16 @@ from algo.genetic import SP_Chromosome
 from algo.util.output import Output
 
 
-def solve(input, version="net_delay", objective=None):
+def solve(input, version=None, objective=None):
     solver_versions = {
         "cloud": ga_bootstrap.create_individual_cloud,
         "net_delay": ga_bootstrap.create_individual_net_delay,
         "cluster_metoids": ga_bootstrap.create_individual_cluster_metoids,
         "deadline": ga_bootstrap.create_individual_deadline,
     }
+
+    if version is None:
+        version = ["net_delay", "deadline"]
 
     functions = []
     if isinstance(version, list) or isinstance(version, tuple):

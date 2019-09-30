@@ -207,11 +207,13 @@ class BRKGA:
 
         # Get mutant indivuals
         mutants = [self._gen_rand_individual()
-                   for i in range(self._mutant_size)]
+                   for _ in range(self._mutant_size)]
         next_population += mutants
 
         # Get indivuals by crossover operation
         non_elite = current_ranked_pop[self._elite_size:]
+        if self._elite_size == 0:
+            elite = non_elite
         while len(next_population) < self.pop_size:
             indiv_1 = random.choice(elite)
             indiv_2 = random.choice(non_elite)

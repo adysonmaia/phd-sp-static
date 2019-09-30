@@ -52,6 +52,10 @@ X_PARAM = {
     'apps': {
         'label': 'Number of Applications',
         'limit': [-0.5, 0.5]
+    },
+    'nodes': {
+        'label': 'Number of Nodes',
+        'limit': [-0.2, 0.2]
     }
 }
 
@@ -179,21 +183,21 @@ def run():
 
     all_solutions = [
         ('bootstrap', 'cloud'),
-        ('bootstrap', 'net_delay'),
-        ('bootstrap', 'cluster'),
-        ('bootstrap', 'net_delay_deadline'),
-        ('bootstrap', 'cluster_deadline'),
         ('milp', ''),
+        ('bootstrap', 'net_delay'),
+        ('bootstrap', 'net_delay_deadline'),
+        ('bootstrap', 'cluster'),
+        ('bootstrap', 'cluster_deadline'),
         ('genetic', ''),
         ('genetic', 'bootstrap'),
     ]
 
     metric_solutions = {
         'max_dv': all_solutions,
-        'dsr': all_solutions,
-        'avg_rt': all_solutions,
-        'cost': all_solutions,
-        'avg_unavail': all_solutions
+        # 'dsr': all_solutions,
+        # 'avg_rt': all_solutions,
+        # 'cost': all_solutions,
+        # 'avg_unavail': all_solutions
     }
 
     params = [
@@ -219,8 +223,8 @@ def run():
 
     for param in params:
         for metric, solutions in metric_solutions.items():
-            fig_title = params['title']
-            filter = params['filter']
+            fig_title = param['title']
+            filter = param['filter']
             x = param['x_values']
             x_field = param['x_field']
             filename = "exp/figs/exp_1/fig_{}_{}.png".format(metric, fig_title)

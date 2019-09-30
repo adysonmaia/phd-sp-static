@@ -285,7 +285,7 @@ def main(args=[]):
 
     nb_nodes = 102
     nb_apps = 3
-    nb_users = 1000
+    nb_users = 10000
     if len(args) >= 3:
         nb_nodes, nb_apps, nb_users = map(lambda i: int(i), args)
 

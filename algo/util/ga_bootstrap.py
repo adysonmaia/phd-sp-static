@@ -29,9 +29,11 @@ def create_individual_net_delay(chromosome):
             avg_delay = 0.0
             count = 0
             for b in r_nodes:
-                if chromosome.get_nb_users(a, b) > 0:
-                    avg_delay += chromosome.get_net_delay(a, b, h)
-                    count += 1
+                # if chromosome.get_nb_users(a, b) > 0:
+                #     avg_delay += chromosome.get_net_delay(a, b, h)
+                #     count += 1
+                avg_delay += chromosome.get_net_delay(a, b, h)
+                count += 1
             if count > 0:
                 avg_delay = avg_delay / float(count)
             nodes_delay.append(avg_delay)
@@ -121,9 +123,21 @@ def create_individual_cluster_metoids(chromosome):
         nb_clusters = min(len(features), app.max_instances)
         kmedoids.fit(nb_clusters, features, distances)
         metoids = kmedoids.get_last_metoids()
-        for h in metoids:
+        # for h in metoids:
+        #     key = nb_apps + a * nb_nodes + h
+        #     value = 1.0
+        #     indiv[key] = value
+        m_distances = []
+        max_dist = 1.0
+        for h in r_nodes:
+            dist = min(map(lambda m: distances[h][m], metoids))
+            m_distances.append(dist)
+            if dist > max_dist:
+                max_dist = dist
+
+        for h in r_nodes:
             key = nb_apps + a * nb_nodes + h
-            value = 1.0
+            value = 1.0 - m_distances[h] / float(max_dist)
             indiv[key] = value
 
     return indiv

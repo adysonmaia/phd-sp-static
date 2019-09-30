@@ -87,7 +87,7 @@ def exp_4(args=[]):
         start_time = time.time()
         solution = algo.bootstrap.solve(input, version)
         elapsed_time = round(time.time() - start_time, 4)
-        print("bootstrap {}: {}".format(version, title))
+        print("bootstrap {}: {}".format(title, version))
         print("\t {:15} : {} s".format("time", elapsed_time))
         print("\t {:15} : {}".format("valid", solution.is_valid()))
 
@@ -180,9 +180,9 @@ def exp_2(args=[]):
 
     solutions = [("cloud", algo.cloud),
                  ("greedy", algo.greedy),
-                 # ("milp", algo.milp),
-                 ("bootstrap", algo.bootstrap),
+                 # ("bootstrap", algo.bootstrap),
                  ("genetic", algo.genetic),
+                 ("milp", algo.milp),
                  # ("genetic 2", algo.genetic_2),
                  # ("genetic cluster", algo.genetic_cluster),
                  # ("genetic penality", algo.genetic_penality),

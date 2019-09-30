@@ -6,7 +6,7 @@ from algo.util.output import Output
 INF = float("inf")
 E_MAX = 1000.0
 QUEUE_MIN_DIFF = 0.00001
-TIME_LIMIT = 600
+TIME_LIMIT = 3600
 
 
 class MILP(SP_Solver):
