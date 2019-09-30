@@ -6,13 +6,15 @@ from algo.util.output import Output
 INF = float("inf")
 E_MAX = 1000.0
 QUEUE_MIN_DIFF = 0.00001
-TIME_LIMIT = 3600
+TIME_LIMIT = 600
+NB_THREADS = 0
 
 
 class MILP(SP_Solver):
-    def __init__(self, input, time_limit=0):
+    def __init__(self, input, time_limit=0, nb_threads=0):
         SP_Solver.__init__(self, input)
         self.time_limit = time_limit
+        self.nb_threads = nb_threads
 
     def solve(self):
         # Auxiliar Variables
@@ -142,6 +144,8 @@ class MILP(SP_Solver):
 
         if self.time_limit > 0:
             mdl.context.cplex_parameters.timelimit = self.time_limit
+        if self.nb_threads > 0:
+            mdl.context.cplex_parameters.threads = self.nb_threads
 
         cloud = self.get_cloud_index()
         obj_value = INF
@@ -165,8 +169,8 @@ class MILP(SP_Solver):
         return place, load, obj_value
 
 
-def solve(input, time_limit=TIME_LIMIT):
-    solver = MILP(input, time_limit)
+def solve(input, time_limit=TIME_LIMIT, nb_threads=NB_THREADS):
+    solver = MILP(input, time_limit, nb_threads)
     result = list(solver.solve())
     output = Output(input)
     output.e_relaxed = result.pop()

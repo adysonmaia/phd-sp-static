@@ -9,6 +9,8 @@ import algo
 
 EXP_POOL_SIZE = 3
 GA_POOL_SIZE = 3
+CPLEX_THREADS = 3
+CPLEX_TIMEOUT = 3600
 
 
 def exec_solver(solver_data):
@@ -138,6 +140,8 @@ class Exp_1():
         data.solver = algo.milp
         data.params = {
             "input": input,
+            "time_limit": CPLEX_TIMEOUT,
+            "nb_threads": CPLEX_THREADS
         }
         data.title = "milp"
         data.version = ""
