@@ -45,8 +45,8 @@ class Exp_3():
         self.output_filename = "exp/output/exp_3.csv"
 
         self.scenarios = []
-        for e in np.arange(0, 1.1, 0.2):
-            for m in np.arange(0, 1.1, 0.2):
+        for e in np.arange(0, 1.1, 0.1):
+            for m in np.arange(0, 1.1, 0.1):
                 if e + m > 1:
                     continue
                 param = {'elite': e, 'mutant': m}
@@ -81,28 +81,30 @@ class Exp_3():
             self.writer = csv.DictWriter(csv_file, fieldnames=field_names)
             self.writer.writeheader()
 
-            for scenario in self.scenarios:
-                self._run_scenario(scenario)
+            self._run_scenarios()
 
-    def _run_scenario(self, scenario):
+    def _run_scenarios(self):
         r_runs = range(self.nb_runs)
-        nb_elites = scenario['elite']
-        nb_mutants = scenario['mutant']
 
-        solvers = []
         for run in r_runs:
-            solvers += self._get_solvers(nb_elites, nb_mutants, run)
+            solvers = []
+            input = generator.InputGenerator().gen_from_file(
+                self.input_filename, self.nb_nodes, self.nb_apps, self.nb_users
+            )
+            metric = Metric(input)
 
-        solutions = self.pool.uimap(exec_solver, solvers)
-        for data in solutions:
-            output = self._get_output(data)
-            self._write_output(output)
+            for scenario in self.scenarios:
+                nb_elites = scenario['elite']
+                nb_mutants = scenario['mutant']
+                solvers += self._get_solvers(nb_elites, nb_mutants,
+                                             run, input, metric)
 
-    def _get_solvers(self, nb_elites, nb_mutants, run):
-        input = generator.InputGenerator().gen_from_file(
-            self.input_filename, self.nb_nodes, self.nb_apps, self.nb_users
-        )
-        metric = Metric(input)
+            solutions = self.pool.uimap(exec_solver, solvers)
+            for data in solutions:
+                output = self._get_output(data)
+                self._write_output(output)
+
+    def _get_solvers(self, nb_elites, nb_mutants, run, input, metric):
         obj_title, obj_func_name = self.objective
         obj_func = getattr(metric, obj_func_name)
 
