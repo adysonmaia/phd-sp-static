@@ -179,9 +179,9 @@ def exp_2(args=[]):
                ("avg unavail", metric.get_avg_unavailability)]
 
     solutions = [("cloud", algo.cloud),
-                 ("greedy", algo.greedy),
+                 # ("greedy", algo.greedy),
                  # ("bootstrap", algo.bootstrap),
-                 # ("genetic", algo.genetic),
+                 ("genetic", algo.genetic),
                  ("milp", algo.milp),
                  # ("genetic 2", algo.genetic_2),
                  # ("genetic cluster", algo.genetic_cluster),

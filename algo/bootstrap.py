@@ -9,6 +9,7 @@ def solve(input, version=None, objective=None):
         "net_delay": ga_bootstrap.create_individual_net_delay,
         "cluster_metoids": ga_bootstrap.create_individual_cluster_metoids,
         "deadline": ga_bootstrap.create_individual_deadline,
+        "cluster_metoids_sc": ga_bootstrap.create_individual_cluster_metoids_sc
     }
 
     if version is None:

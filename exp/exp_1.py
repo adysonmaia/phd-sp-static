@@ -9,8 +9,8 @@ import algo
 
 EXP_POOL_SIZE = 3
 GA_POOL_SIZE = 3
-CPLEX_THREADS = 3
-CPLEX_TIMEOUT = 3600
+CPLEX_THREADS = 4
+CPLEX_TIMEOUT = 7200
 
 
 def exec_solver(solver_data):
@@ -114,9 +114,12 @@ class Exp_1():
             ("cloud", "cloud"),
             ("net_delay", "net_delay"),
             ("cluster", "cluster_metoids"),
+            ("cluster_2", "cluster_metoids_sc"),
             ("deadline", "deadline"),
             ("net_delay_deadline", ["net_delay", "deadline"]),
             ("cluster_deadline", ["cluster_metoids", "deadline"]),
+            ("cluster_2_deadline", ["cluster_metoids_sc", "deadline"]),
+            ("cluster_delay_deadline", ["cluster_metoids", "net_delay", "deadline"]),
         ]
 
         for ver_title, ver_code in bootstrap_versions:

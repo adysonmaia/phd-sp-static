@@ -123,10 +123,58 @@ def create_individual_cluster_metoids(chromosome):
         nb_clusters = min(len(features), app.max_instances)
         kmedoids.fit(nb_clusters, features, distances)
         metoids = kmedoids.get_last_metoids()
-        # for h in metoids:
-        #     key = nb_apps + a * nb_nodes + h
-        #     value = 1.0
-        #     indiv[key] = value
+        m_distances = []
+        max_dist = 1.0
+        for h in r_nodes:
+            dist = min(map(lambda m: distances[h][m], metoids))
+            m_distances.append(dist)
+            if dist > max_dist:
+                max_dist = dist
+
+        for h in r_nodes:
+            key = nb_apps + a * nb_nodes + h
+            value = 1.0 - m_distances[h] / float(max_dist)
+            indiv[key] = value
+
+    return indiv
+
+
+def create_individual_cluster_metoids_sc(chromosome):
+    """Create an individual based on k-medoids clustering
+    with silhouette score
+    The idea is the users of an application are grouped
+    and central nodes of each group are prioritized.
+    It also prioritizes requests with strict deadlines
+    """
+    nb_apps = len(chromosome.apps)
+    r_apps = range(nb_apps)
+    nb_nodes = len(chromosome.nodes)
+    r_nodes = range(nb_nodes)
+    kmedoids = KMedoids()
+
+    indiv = [0] * chromosome.nb_genes
+
+    for a in r_apps:
+        indiv[a] = 1.0
+        app = chromosome.apps[a]
+
+        distances = [[app.get_net_delay(i, j)
+                      for j in chromosome.nodes]
+                     for i in chromosome.nodes]
+        features = list(filter(lambda h: app.get_nb_users(chromosome.nodes[h]) > 0, r_nodes))
+        max_nb_clusters = min(len(features), app.max_instances)
+
+        metoids = list(r_nodes)
+        max_score = -1
+        if max_nb_clusters > 1:
+            for k in range(1, max_nb_clusters + 1):
+                k_clusters = kmedoids.fit(k, features, distances)
+                k_score = kmedoids.silhouette_score(k_clusters, distances)
+                k_metoids = kmedoids.get_last_metoids()
+                if k_score > max_score:
+                    max_score = k_score
+                    metoids = k_metoids
+
         m_distances = []
         max_dist = 1.0
         for h in r_nodes:

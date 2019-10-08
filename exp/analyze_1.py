@@ -8,9 +8,15 @@ import matplotlib.pyplot as plt
 DPI = 100
 
 LINE_FORMATS = [
-    '-o',   '-s',  '-D',  '-^',  '-v',  '-<', '->',
-    # '--o', '--s', '--D', '--^', '--v', '--<', '-->',
-    # '-.o', '-.s', '-.D', '-.^', '-.v', '-.<', '-.>',
+    {'fmt': '-^'},
+    {'fmt': '-v'},
+    {'fmt': '-<'},
+    {'fmt': '-d', 'fillstyle': 'none'},
+    {'fmt': '-d'},
+    {'fmt': '-s', 'fillstyle': 'none'},
+    {'fmt': '-s'},
+    {'fmt': '-o', 'fillstyle': 'none'},
+    {'fmt': '-o'},
 ]
 
 Y_PARAM = {
@@ -54,21 +60,22 @@ X_PARAM = {
         'limit': [-0.5, 0.5]
     },
     'nodes': {
-        'label': 'Number of Nodes',
-        'limit': [-0.2, 0.2]
+        'label': 'Number of Base Stations',
+        'limit': [-0.2, 0.2],
+        'xticks': ['2x2', '3x3', '4x4', '5x5']
     }
 }
 
 SOL_LABEL = {
     ('milp', ''): r'MILP',
     ('bootstrap', 'cloud'): r'Cloud',
-    ('bootstrap', 'net_delay'): r'Net Delay',
+    ('bootstrap', 'net_delay'): r'NetDelay',
     ('bootstrap', 'cluster'): r'Cluster',
-    ('bootstrap', 'deadline'): r'Deadline',
-    ('bootstrap', 'net_delay_deadline'): r'Net Delay + Deadline',
-    ('bootstrap', 'cluster_deadline'): r'Cluster + Deadline',
-    ('genetic', ''): r'Genetic',
-    ('genetic', 'bootstrap'): r'Genetic + Bootstrap',
+    ('bootstrap', 'deadline'): r'DL',
+    ('bootstrap', 'net_delay_deadline'): r'NetDelay+DL',
+    ('bootstrap', 'cluster_deadline'): r'Cluster+DL',
+    ('genetic', ''): r'GA',
+    ('genetic', 'bootstrap'): r'GA+HI',
 }
 
 
@@ -134,8 +141,6 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
     plt.clf()
     matplotlib.rcParams.update({'font.size': 20})
     filtered = filter_data(data, **data_filter)
-    # formats = ['-o', '-s', '-<', 'k-->', '-^', '-v', '-d']
-    # formats = ['-', '--', '-.', ':']
     formats = LINE_FORMATS
     formats_len = len(formats)
     line = 0
@@ -154,11 +159,11 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
         line_format = formats[line % formats_len]
         label = SOL_LABEL[solution, version]
         plt.errorbar(x, y, yerr=y_errors, label=label,
-                     fmt=line_format, markersize=10)
+                     markersize=10, **line_format)
         line += 1
 
     # ncol = 4 if len(solutions) > 4 else 3
-    ncol = 4
+    ncol = 3
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.17),
                numpoints=1, ncol=ncol, columnspacing=0.5, fontsize=20)
     plt.subplots_adjust(bottom=0.2, top=0.97, left=0.12, right=0.96)
@@ -168,9 +173,12 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
 
     plt.xlabel(x_param['label'])
     plt.ylabel(y_param['label'])
-    plt.xlim(x[0] + x_param['limit'][0], x[-1] + x_param['limit'][1])
     plt.ylim(*y_param['limit'])
-    plt.xticks(x)
+    plt.xlim(x[0] + x_param['limit'][0], x[-1] + x_param['limit'][1])
+    if 'xticks' in x_param:
+        plt.xticks(x, x_param['xticks'])
+    else:
+        plt.xticks(x)
     plt.grid(True)
     if not filename:
         plt.show()
@@ -182,8 +190,9 @@ def run():
     data = get_data_from_file('exp/output/exp_1.csv')
 
     all_solutions = [
-        ('bootstrap', 'cloud'),
         ('milp', ''),
+        ('bootstrap', 'cloud'),
+        ('bootstrap', 'deadline'),
         ('bootstrap', 'net_delay'),
         ('bootstrap', 'net_delay_deadline'),
         ('bootstrap', 'cluster'),
