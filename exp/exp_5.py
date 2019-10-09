@@ -30,7 +30,7 @@ class Solver_Data():
         pass
 
 
-class Exp_3():
+class Exp_5():
     def __init__(self):
         random.seed()
         np.random.seed()
@@ -41,18 +41,14 @@ class Exp_3():
         self.nb_apps = 50
         self.nb_users = 10000
 
-        self.input_filename = "exp/input/exp_3.json"
-        self.output_filename = "exp/output/exp_3.csv"
+        self.input_filename = "exp/input/exp_5.json"
+        self.output_filename = "exp/output/exp_5.csv"
 
         self.scenarios = []
-        for e in np.arange(0, 1.1, 0.1):
-            for m in np.arange(0, 1.1, 0.1):
-                if e + m > 1:
-                    continue
-                param = {'elite': e, 'mutant': m}
-                self.scenarios.append(param)
+        for i in np.arange(0.0, 0.6, 0.1):
+            param = {'stop_threshold': i}
+            self.scenarios.append(param)
 
-        self.single_objective = ("max_dv", "get_max_deadline_violation")
         self.multi_objective = [
             ("max_dv", "get_max_deadline_violation"),
             ("cost", "get_overall_cost"),
@@ -75,7 +71,7 @@ class Exp_3():
     def run(self):
         with open(self.output_filename, "w") as csv_file:
             field_names = [
-                "elite", "mutant", "run", "solution", "version",
+                "threshold", "run", "solution", "version",
                 "time", "objective"
             ]
             for m_title, m_func_name in self.metrics:
@@ -101,38 +97,16 @@ class Exp_3():
             metric = Metric(input)
 
             for scenario in self.scenarios:
-                nb_elites = scenario['elite']
-                nb_mutants = scenario['mutant']
-                solvers += self._get_solvers(nb_elites, nb_mutants,
-                                             run, input, metric)
+                st = scenario['stop_threshold']
+                solvers += self._get_solvers(st, run, input, metric)
 
             solutions = self.pool.uimap(exec_solver, solvers)
             for data in solutions:
                 output = self._get_output(data)
                 self._write_output(output)
 
-    def _get_solvers(self, nb_elites, nb_mutants, run, input, metric):
+    def _get_solvers(self, stop_threshold, run, input, metric):
         solvers = []
-
-        # so_title, so_func_name = self.single_objective
-        # so_func = getattr(metric, so_func_name)
-        # data = Solver_Data()
-        # data.solver = algo.genetic
-        # data.params = {
-        #     "input": input,
-        #     "objective": so_func,
-        #     "use_heuristic": True,
-        #     "pool_size": GA_POOL_SIZE,
-        #     "elite_proportion": nb_elites,
-        #     "mutant_proportion": nb_mutants
-        # }
-        # data.title = "genetic"
-        # data.version = "heuristic"
-        # data.objective = so_title
-        # data.elite = nb_elites
-        # data.mutant = nb_mutants
-        # data.run = run
-        # solvers.append(data)
 
         mo_func = [getattr(metric, obj[1]) for obj in self.multi_objective]
         mo_title = [obj[0] for obj in self.multi_objective]
@@ -143,14 +117,12 @@ class Exp_3():
             "objective": mo_func,
             "use_heuristic": True,
             "pool_size": GA_POOL_SIZE,
-            "elite_proportion": nb_elites,
-            "mutant_proportion": nb_mutants
+            "stop_threshold": stop_threshold
         }
         data.title = "moga"
         data.version = "preferred"
         data.objective = "|".join(mo_title)
-        data.elite = nb_elites
-        data.mutant = nb_mutants
+        data.stop_threshold = stop_threshold
         data.run = run
         solvers.append(data)
 
@@ -158,8 +130,7 @@ class Exp_3():
 
     def _get_output(self, data):
         output = {
-            "elite": data.elite,
-            "mutant": data.mutant,
+            "stop_threshold": data.stop_threshold,
             "run": data.run,
             "solution": data.title,
             "version": data.version,
@@ -185,9 +156,9 @@ class Exp_3():
         return output
 
     def _write_output(self, output):
-        print("{} {} | elite: {} | mutant: {} | run: {}".format(
-               output["solution"], output["version"], output["elite"],
-               output["mutant"], output["run"]
+        print("{} {} | stop threshold : {} | run: {}".format(
+               output["solution"], output["version"],
+               output["stop_threshold"], output["run"]
         ))
         print("\t {:15} : {} s".format("time", output["time"]))
         print("\t {:15} : {}".format("objective", output["objective"]))
@@ -200,9 +171,9 @@ class Exp_3():
 
 
 def run():
-    exp = Exp_3()
+    exp = Exp_5()
     exp.run()
 
 
 if __name__ == '__main__':
-    print("Execute as 'python3 main.py exp_3'")
+    print("Execute as 'python3 main.py exp_5'")

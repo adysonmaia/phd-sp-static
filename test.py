@@ -85,9 +85,9 @@ def exp_4(args=[]):
 
     for title, version in versions:
         start_time = time.time()
-        solution = algo.bootstrap.solve(input, version)
+        solution = algo.heuristic.solve(input, version)
         elapsed_time = round(time.time() - start_time, 4)
-        print("bootstrap {}: {}".format(title, version))
+        print("heuristic {}: {}".format(title, version))
         print("\t {:15} : {} s".format("time", elapsed_time))
         print("\t {:15} : {}".format("valid", solution.is_valid()))
 
@@ -180,7 +180,7 @@ def exp_2(args=[]):
 
     solutions = [("cloud", algo.cloud),
                  # ("greedy", algo.greedy),
-                 # ("bootstrap", algo.bootstrap),
+                 # ("heuristic", algo.heuristic),
                  ("genetic", algo.genetic),
                  ("milp", algo.milp),
                  # ("genetic 2", algo.genetic_2),

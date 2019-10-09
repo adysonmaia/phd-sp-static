@@ -295,12 +295,8 @@ def main(args=[]):
     )
 
     # solver = algo.genetic
-    # solver = algo.genetic_cluster
-    # solver = algo.cluster
     solver = algo.genetic_mo
-    # solver = algo.greedy
-    # solver = algo.cloud
-    # solver = algo.bootstrap
+    # solver = algo.heuristic
 
     output = None
     start_time = time.time()

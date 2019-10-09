@@ -110,27 +110,24 @@ class Exp_1():
 
         solvers = []
 
-        bootstrap_versions = [
+        heuristic_versions = [
             ("cloud", "cloud"),
             ("net_delay", "net_delay"),
             ("cluster", "cluster_metoids"),
-            ("cluster_2", "cluster_metoids_sc"),
             ("deadline", "deadline"),
             ("net_delay_deadline", ["net_delay", "deadline"]),
             ("cluster_deadline", ["cluster_metoids", "deadline"]),
-            ("cluster_2_deadline", ["cluster_metoids_sc", "deadline"]),
-            ("cluster_delay_deadline", ["cluster_metoids", "net_delay", "deadline"]),
         ]
 
-        for ver_title, ver_code in bootstrap_versions:
+        for ver_title, ver_code in heuristic_versions:
             data = Solver_Data()
-            data.solver = algo.bootstrap
+            data.solver = algo.heuristic
             data.params = {
                 "input": input,
                 "version": ver_code,
                 "objective": obj_func
             }
-            data.title = "bootstrap"
+            data.title = "heuristic"
             data.version = ver_title
             data.objective = obj_title
             data.nb_nodes = nb_nodes
@@ -155,39 +152,23 @@ class Exp_1():
         data.run = run
         solvers.append(data)
 
-        data = Solver_Data()
-        data.solver = algo.genetic
-        data.params = {
-            "input": input,
-            "objective": obj_func,
-            "use_bootstrap": False,
-            "pool_size": GA_POOL_SIZE
-        }
-        data.title = "genetic"
-        data.version = ""
-        data.objective = obj_title
-        data.nb_nodes = nb_nodes
-        data.nb_apps = nb_apps
-        data.nb_users = nb_users
-        data.run = run
-        solvers.append(data)
-
-        data = Solver_Data()
-        data.solver = algo.genetic
-        data.params = {
-            "input": input,
-            "objective": obj_func,
-            "use_bootstrap": True,
-            "pool_size": GA_POOL_SIZE
-        }
-        data.title = "genetic"
-        data.version = "bootstrap"
-        data.objective = obj_title
-        data.nb_nodes = nb_nodes
-        data.nb_apps = nb_apps
-        data.nb_users = nb_users
-        data.run = run
-        solvers.append(data)
+        for use_heuristic in [True, False]:
+            data = Solver_Data()
+            data.solver = algo.genetic
+            data.params = {
+                "input": input,
+                "objective": obj_func,
+                "use_heuristic": use_heuristic,
+                "pool_size": GA_POOL_SIZE
+            }
+            data.title = "soga"
+            data.version = "heuristic" if use_heuristic else ""
+            data.objective = obj_title
+            data.nb_nodes = nb_nodes
+            data.nb_apps = nb_apps
+            data.nb_users = nb_users
+            data.run = run
+            solvers.append(data)
 
         return solvers
 

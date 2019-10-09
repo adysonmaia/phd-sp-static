@@ -9,13 +9,14 @@ def solve(input,
           nb_generations=100,
           population_size=100,
           elite_proportion=0.1,
-          mutant_proportion=0.2,
+          mutant_proportion=0.1,
           elite_probability=0.6,
           stop_threshold=0.10,
           objective=None,
+          use_heuristic=True,
           pool_size=POOL_SIZE):
 
-    chromossome = MO_Chromosome(input, objective)
+    chromossome = MO_Chromosome(input, objective, use_heuristic=use_heuristic)
     genetic = NSGAII(chromossome,
                      nb_generations=nb_generations,
                      population_size=population_size,

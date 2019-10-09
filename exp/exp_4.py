@@ -30,7 +30,7 @@ class Solver_Data():
         pass
 
 
-class Exp_3():
+class Exp_4():
     def __init__(self):
         random.seed()
         np.random.seed()
@@ -41,16 +41,13 @@ class Exp_3():
         self.nb_apps = 50
         self.nb_users = 10000
 
-        self.input_filename = "exp/input/exp_3.json"
-        self.output_filename = "exp/output/exp_3.csv"
+        self.input_filename = "exp/input/exp_4.json"
+        self.output_filename = "exp/output/exp_4.csv"
 
         self.scenarios = []
-        for e in np.arange(0, 1.1, 0.1):
-            for m in np.arange(0, 1.1, 0.1):
-                if e + m > 1:
-                    continue
-                param = {'elite': e, 'mutant': m}
-                self.scenarios.append(param)
+        for p in np.arange(0.1, 1.0, 0.1):
+            param = {'p': p}
+            self.scenarios.append(param)
 
         self.single_objective = ("max_dv", "get_max_deadline_violation")
         self.multi_objective = [
@@ -75,7 +72,7 @@ class Exp_3():
     def run(self):
         with open(self.output_filename, "w") as csv_file:
             field_names = [
-                "elite", "mutant", "run", "solution", "version",
+                "probability", "run", "solution", "version",
                 "time", "objective"
             ]
             for m_title, m_func_name in self.metrics:
@@ -101,17 +98,15 @@ class Exp_3():
             metric = Metric(input)
 
             for scenario in self.scenarios:
-                nb_elites = scenario['elite']
-                nb_mutants = scenario['mutant']
-                solvers += self._get_solvers(nb_elites, nb_mutants,
-                                             run, input, metric)
+                prob = scenario['p']
+                solvers += self._get_solvers(prob, run, input, metric)
 
             solutions = self.pool.uimap(exec_solver, solvers)
             for data in solutions:
                 output = self._get_output(data)
                 self._write_output(output)
 
-    def _get_solvers(self, nb_elites, nb_mutants, run, input, metric):
+    def _get_solvers(self, probability, run, input, metric):
         solvers = []
 
         # so_title, so_func_name = self.single_objective
@@ -123,14 +118,12 @@ class Exp_3():
         #     "objective": so_func,
         #     "use_heuristic": True,
         #     "pool_size": GA_POOL_SIZE,
-        #     "elite_proportion": nb_elites,
-        #     "mutant_proportion": nb_mutants
+        #     "elite_probability": probability
         # }
         # data.title = "genetic"
         # data.version = "heuristic"
         # data.objective = so_title
-        # data.elite = nb_elites
-        # data.mutant = nb_mutants
+        # data.probability = probability
         # data.run = run
         # solvers.append(data)
 
@@ -143,14 +136,12 @@ class Exp_3():
             "objective": mo_func,
             "use_heuristic": True,
             "pool_size": GA_POOL_SIZE,
-            "elite_proportion": nb_elites,
-            "mutant_proportion": nb_mutants
+            "elite_probability": probability
         }
         data.title = "moga"
         data.version = "preferred"
         data.objective = "|".join(mo_title)
-        data.elite = nb_elites
-        data.mutant = nb_mutants
+        data.probability = probability
         data.run = run
         solvers.append(data)
 
@@ -158,8 +149,7 @@ class Exp_3():
 
     def _get_output(self, data):
         output = {
-            "elite": data.elite,
-            "mutant": data.mutant,
+            "probability": data.probability,
             "run": data.run,
             "solution": data.title,
             "version": data.version,
@@ -185,9 +175,9 @@ class Exp_3():
         return output
 
     def _write_output(self, output):
-        print("{} {} | elite: {} | mutant: {} | run: {}".format(
-               output["solution"], output["version"], output["elite"],
-               output["mutant"], output["run"]
+        print("{} {} | elite prob: {} | run: {}".format(
+               output["solution"], output["version"],
+               output["probability"], output["run"]
         ))
         print("\t {:15} : {} s".format("time", output["time"]))
         print("\t {:15} : {}".format("objective", output["objective"]))
@@ -200,9 +190,9 @@ class Exp_3():
 
 
 def run():
-    exp = Exp_3()
+    exp = Exp_4()
     exp.run()
 
 
 if __name__ == '__main__':
-    print("Execute as 'python3 main.py exp_3'")
+    print("Execute as 'python3 main.py exp_4'")

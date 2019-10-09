@@ -2,7 +2,7 @@ import math
 from algo.util.output import Output
 from algo.util.sp import SP_Solver
 from algo.util.brkga import Chromosome, BRKGA
-from algo.util import ga_bootstrap
+from algo.util import ga_heuristic
 import numpy
 
 INF = float("inf")
@@ -12,11 +12,11 @@ DEFAULT_STALL_THRESHOLD = 0.0
 
 
 class SP_Chromosome(Chromosome, SP_Solver):
-    def __init__(self, input, objective=None, use_bootstrap=True):
+    def __init__(self, input, objective=None, use_heuristic=True):
         Chromosome.__init__(self)
         SP_Solver.__init__(self, input)
 
-        self.use_bootstrap = use_bootstrap
+        self.use_heuristic = use_heuristic
 
         nb_apps = len(self.apps)
         r_apps = range(nb_apps)
@@ -42,24 +42,24 @@ class SP_Chromosome(Chromosome, SP_Solver):
         self._best_values = []
 
     def gen_init_population(self):
-        if not self.use_bootstrap:
+        if not self.use_heuristic:
             return []
 
         indiv_list = [
-            ga_bootstrap.create_individual_cloud(self),
-            ga_bootstrap.create_individual_net_delay(self),
-            ga_bootstrap.create_individual_cluster_metoids(self),
-            ga_bootstrap.create_individual_deadline(self)
+            ga_heuristic.create_individual_cloud(self),
+            ga_heuristic.create_individual_net_delay(self),
+            ga_heuristic.create_individual_cluster_metoids(self),
+            ga_heuristic.create_individual_deadline(self)
         ]
         merged_indiv = []
         for indiv_1 in indiv_list:
-            indiv = ga_bootstrap.invert_individual(self, indiv_1)
+            indiv = ga_heuristic.invert_individual(self, indiv_1)
             merged_indiv.append(indiv)
 
             for indiv_2 in indiv_list:
                 if indiv_1 == indiv_2:
                     continue
-                indiv = ga_bootstrap.merge_population(self, [indiv_1, indiv_2])
+                indiv = ga_heuristic.merge_population(self, [indiv_1, indiv_2])
                 merged_indiv.append(indiv)
         indiv_list += merged_indiv
 
@@ -78,8 +78,6 @@ class SP_Chromosome(Chromosome, SP_Solver):
             variance = numpy.var(values)
 
         return best_value == 0.0 or variance <= self.stall_threshold
-        # print("{}\t{}".format(len(self._best_values), best_value))
-        # return best_value == 0.0
 
     def fitness(self, individual):
         result = self.decode(individual)
@@ -175,15 +173,15 @@ def solve(input,
           nb_generations=100,
           population_size=100,
           elite_proportion=0.1,
-          mutant_proportion=0.2,
+          mutant_proportion=0.1,
           elite_probability=0.6,
           objective=None,
-          use_bootstrap=True,
+          use_heuristic=True,
           pool_size=POOL_SIZE):
 
     chromossome = SP_Chromosome(input,
                                 objective=objective,
-                                use_bootstrap=use_bootstrap)
+                                use_heuristic=use_heuristic)
     genetic = BRKGA(chromossome,
                     nb_generations=nb_generations,
                     population_size=population_size,

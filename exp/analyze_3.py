@@ -24,43 +24,55 @@ LINE_FORMATS = [
 
 Z_PARAM = {
     'max_dv': {
-        'label': 'Deadline Violation - ms',
-        'limit': [0.0, 14.0]
+        'label': 'DL Violation - ms',
+        'limit': [0.0, 13.0],
+        'labelpad': 10
     },
     'dsr': {
         'label': 'Deadline Satisfaction - %',
-        'limit': [40.0, 100.0]
+        'limit': [40.0, 100.0],
+        'labelpad': 10
     },
     'avg_rt': {
         'label': 'Response Time - ms',
-        'limit': [0.0, 18.0]
+        'limit': [0.0, 18.0],
+        'labelpad': 10
     },
     'cost': {
-        'label': 'Cost',
-        'limit': [0.0, 2500.0]
+        'label': 'Overall Cost',
+        'limit': [1200.0, 1600.0],
+        'labelpad': 20
     },
     'max_unavail': {
         'label': 'Availability - %',
-        'limit': [70.0, 100.0]
+        'limit': [90.0, 100.0],
+        'labelpad': 15
     },
+    # 'avg_unavail': {
+    #     'label': 'Availability - %',
+    #     'limit': [90.0, 100.0],
+    #     'labelpad': 15
+    # },
     'avg_unavail': {
-        'label': 'Availability - %',
-        'limit': [70.0, 100.0]
+        'label': 'Unavailability - %',
+        'limit': [0.0, 10.0],
+        'labelpad': 15
     },
     'avg_avail': {
         'label': 'Availability - %',
-        'limit': [0.0, 100.0]
+        'limit': [90.0, 100.0],
+        'labelpad': 15
     }
 }
 
 X_PARAM = {
     'elite': {
-        'label': 'Elite Proportion - %',
-        'limit': [0, 1]
+        'label': 'Elite - %',
+        'limit': [0, 100]
     },
     'mutant': {
-        'label': 'Mutant Proportion - %',
-        'limit': [0, 1]
+        'label': 'Mutant - %',
+        'limit': [0, 100]
     },
 }
 
@@ -68,14 +80,15 @@ Y_PARAM = X_PARAM
 
 SOL_LABEL = {
     ('milp', ''): r'MILP',
-    ('bootstrap', 'cloud'): r'Cloud',
-    ('bootstrap', 'net_delay'): r'NetDelay',
-    ('bootstrap', 'cluster'): r'Cluster',
-    ('bootstrap', 'deadline'): r'DL',
-    ('bootstrap', 'net_delay_deadline'): r'NetDelay+DL',
-    ('bootstrap', 'cluster_deadline'): r'Cluster+DL',
-    ('genetic', ''): r'GA',
-    ('genetic', 'bootstrap'): r'GA+HI',
+    ('heuristic', 'cloud'): r'Cloud',
+    ('heuristic', 'net_delay'): r'NetDelay',
+    ('heuristic', 'cluster'): r'Cluster',
+    ('heuristic', 'deadline'): r'DL',
+    ('heuristic', 'net_delay_deadline'): r'NetDelay+DL',
+    ('heuristic', 'cluster_deadline'): r'Cluster+DL',
+    ('soga', ''): r'GA',
+    ('soga', 'heuristic'): r'GA+HI',
+    ('moga', 'preferred'): r'GA',
 }
 
 
@@ -115,7 +128,8 @@ def format_metric(value, metric):
     if metric == 'max_unavail':
         value = 100.0 * (1.0 - value)
     elif metric == 'avg_unavail':
-        value = 100.0 * (1.0 - value)
+        # value = 100.0 * (1.0 - value)
+        value = 100.0 * value
     elif metric == 'avg_avail':
         value = 100.0 * value
     elif metric == 'dsr':
@@ -148,15 +162,16 @@ def calc_stats(values):
 def gen_figure(data, metric, x, x_field, y, y_field,
                data_filter, filename=None):
     plt.clf()
-    # mpl.rcParams.update({'font.size': 20})
+    mpl.rcParams.update({'font.size': 20})
     ax = plt.axes(projection='3d')
 
     filtered = filter_data(data, **data_filter)
-    z = []
-    z_min = INF
-    z_max = 0.0
-    for x_value in x:
-        for y_value in y:
+    dim = (len(x), len(y))
+    x_2d = np.zeros(dim)
+    y_2d = np.zeros(dim)
+    z_2d = np.zeros(dim)
+    for x_index, x_value in enumerate(x):
+        for y_index, y_value in enumerate(y):
             xy_filter = {x_field: x_value, y_field: y_value}
             xy_data = filter_data(filtered, **xy_filter)
             z_value = INF
@@ -164,34 +179,34 @@ def gen_figure(data, metric, x, x_field, y, y_field,
                 values = list(map(lambda r: format_metric(r[metric], metric), xy_data))
                 mean, error = calc_stats(values)
                 z_value = mean
-                print("x={:.1f}, y={:.1f}, z={:.4f}".format(x_value, y_value, z_value))
-                if z_value > z_max:
-                    z_max = z_value
-                if z_value < z_min:
-                    z_min = z_value
-            z.append(z_value)
+                print("{} x={:.1f}, y={:.1f}, z={:.4f}".format(metric, x_value, y_value, z_value))
+
+            x_2d[x_index][y_index] = format_field(x_value, x_field)
+            y_2d[x_index][y_index] = format_field(y_value, y_field)
+            z_2d[x_index][y_index] = z_value
 
     x_param = X_PARAM[x_field]
     y_param = Y_PARAM[y_field]
     z_param = Z_PARAM[metric]
 
-    x_ticks = [format_field(i, x_field) for i in x]
-    y_ticks = [format_field(i, y_field) for i in y]
+    z_min, z_max = z_param['limit']
 
-    ax.set_xlabel(x_param['label'])
-    ax.set_ylabel(y_param['label'])
-    ax.set_zlabel(z_param['label'])
-    # ax.set_xlim(x[0] + x_param['limit'][0], x[-1] + x_param['limit'][1])
-    # ax.set_ylim(x[0] + y_param['limit'][0], y[-1] + y_param['limit'][1])
-    ax.set_zlim(*z_param['limit'])
-    ax.set_xticks(x_ticks)
-    ax.set_yticks(y_ticks)
-    # plt.grid(True)
+    ax.set_xlabel(x_param['label'], labelpad=20)
+    ax.set_ylabel(y_param['label'], labelpad=20)
+    ax.set_zlabel(z_param['label'], labelpad=z_param['labelpad'])
+    # ax.set_xlim(*x_param['limit'])
+    # ax.set_ylim(*y_param['limit'])
+    ax.set_zlim(z_min, z_max)
+    # ax.set_xticks(x_ticks)
+    # ax.set_yticks(y_ticks)
 
-    x, y = np.meshgrid(x_ticks, y_ticks)
-    # norm = mpl.colors.Normalize(vmin=z_min, vmax=z_max)
-    # norm = mpl.colors.LogNorm(vmin=z_min, vmax=z_max)
-    ax.scatter(x, y, z, c=z, cmap='seismic', vmin=z_min, vmax=z_max)
+    color_map = 'seismic'
+    # color_map = 'plasma'
+
+    plt.subplots_adjust(bottom=0.1, top=1.0, left=-0.10, right=0.92)
+    ax.plot_surface(x_2d, y_2d, z_2d, cmap=color_map, vmin=z_min, vmax=z_max)
+
+    # plt.show()
     if not filename:
         plt.show()
     else:
@@ -202,25 +217,28 @@ def run():
     data = get_data_from_file('exp/output/exp_3.csv')
 
     all_solutions = [
-        ('genetic', 'bootstrap'),
+        # ('soga', 'heuristic'),
+        ('moga', 'preferred'),
     ]
 
     metric_solutions = {
         'max_dv': all_solutions,
         # 'dsr': all_solutions,
         # 'avg_rt': all_solutions,
-        # 'cost': all_solutions,
-        # 'avg_unavail': all_solutions
+        'cost': all_solutions,
+        'avg_unavail': all_solutions
     }
 
     params = [
         {
-            'title': 'ga_em_params',
+            'title': 'em',
             'filter': {},
             'x_field': 'elite',
-            'x_values': np.arange(0, 1.1, 0.1),
+            # 'x_values': np.arange(0, 1.1, 0.1),
+            'x_values': np.arange(0, 0.6, 0.1),
             'y_field': 'mutant',
-            'y_values': np.arange(0, 1.1, 0.1)
+            # 'y_values': np.arange(0, 1.1, 0.1)
+            'y_values': np.arange(0, 0.6, 0.1)
         },
     ]
 

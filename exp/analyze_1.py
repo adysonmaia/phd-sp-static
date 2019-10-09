@@ -68,14 +68,14 @@ X_PARAM = {
 
 SOL_LABEL = {
     ('milp', ''): r'MILP',
-    ('bootstrap', 'cloud'): r'Cloud',
-    ('bootstrap', 'net_delay'): r'NetDelay',
-    ('bootstrap', 'cluster'): r'Cluster',
-    ('bootstrap', 'deadline'): r'DL',
-    ('bootstrap', 'net_delay_deadline'): r'NetDelay+DL',
-    ('bootstrap', 'cluster_deadline'): r'Cluster+DL',
-    ('genetic', ''): r'GA',
-    ('genetic', 'bootstrap'): r'GA+HI',
+    ('heuristic', 'cloud'): r'Cloud',
+    ('heuristic', 'net_delay'): r'NetDelay',
+    ('heuristic', 'cluster'): r'Cluster',
+    ('heuristic', 'deadline'): r'DL',
+    ('heuristic', 'net_delay_deadline'): r'NetDelay+DL',
+    ('heuristic', 'cluster_deadline'): r'Cluster+DL',
+    ('soga', ''): r'GA',
+    ('soga', 'heuristic'): r'GA+HI',
 }
 
 
@@ -191,14 +191,14 @@ def run():
 
     all_solutions = [
         ('milp', ''),
-        ('bootstrap', 'cloud'),
-        ('bootstrap', 'deadline'),
-        ('bootstrap', 'net_delay'),
-        ('bootstrap', 'net_delay_deadline'),
-        ('bootstrap', 'cluster'),
-        ('bootstrap', 'cluster_deadline'),
-        ('genetic', ''),
-        ('genetic', 'bootstrap'),
+        ('heuristic', 'cloud'),
+        ('heuristic', 'deadline'),
+        ('heuristic', 'net_delay'),
+        ('heuristic', 'net_delay_deadline'),
+        ('heuristic', 'cluster'),
+        ('heuristic', 'cluster_deadline'),
+        ('soga', ''),
+        ('soga', 'heuristic'),
     ]
 
     metric_solutions = {

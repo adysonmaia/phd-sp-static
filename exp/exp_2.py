@@ -51,8 +51,8 @@ class Exp_2():
             ("max_dv", "get_max_deadline_violation"),
             ("cost", "get_overall_cost"),
             ("avg_unavail", "get_avg_unavailability"),
-            ("avg_rt", "get_avg_response_time"),
-            ("power", "get_overall_power_comsumption"),
+            # ("avg_rt", "get_avg_response_time"),
+            # ("power", "get_overall_power_comsumption"),
         ]
 
         self.metrics = [
@@ -71,7 +71,7 @@ class Exp_2():
         with open(self.output_filename, "w") as csv_file:
             field_names = [
                 "nodes", "apps", "users", "run", "solution", "version",
-                "time"
+                "time", "objective"
             ]
             for m_title, m_func_name in self.metrics:
                 field_names.append(m_title)
@@ -114,39 +114,46 @@ class Exp_2():
 
         for obj_title, obj_func_name in self.objectives:
             obj_func = getattr(metric, obj_func_name)
-            data = Solver_Data()
-            data.solver = algo.genetic
-            data.params = {
-                "input": input,
-                "objective": obj_func,
-                "use_bootstrap": True,
-                "pool_size": GA_POOL_SIZE
-            }
-            data.title = "genetic_so"
-            data.version = obj_title
-            data.nb_nodes = nb_nodes
-            data.nb_apps = nb_apps
-            data.nb_users = nb_users
-            data.run = run
-            solvers.append(data)
+            for use_heuristic in [True, False]:
+                data = Solver_Data()
+                data.solver = algo.genetic_mo
+                data.params = {
+                    "input": input,
+                    "objective": [obj_func],
+                    "use_heuristic": use_heuristic,
+                    "pool_size": GA_POOL_SIZE
+                }
+                data.title = "soga" + "_hi" if use_heuristic else ""
+                data.version = obj_title
+                data.objective = obj_title
+                data.nb_nodes = nb_nodes
+                data.nb_apps = nb_apps
+                data.nb_users = nb_users
+                data.run = run
+                solvers.append(data)
 
         obj_func = [getattr(metric, obj[1]) for obj in self.objectives]
-        mo_versions = [("v1", algo.genetic_mo), ("v2", algo.genetic_mo_2)]
+        obj_title = [obj[0] for obj in self.objectives]
+        mo_versions = [("preferred", algo.genetic_mo),
+                       ("pareto", algo.genetic_mo_pareto)]
         for s_version, solver in mo_versions:
-            data = Solver_Data()
-            data.solver = solver
-            data.params = {
-                "input": input,
-                "objective": obj_func,
-                "pool_size": GA_POOL_SIZE
-            }
-            data.title = "genetic_mo"
-            data.version = s_version
-            data.nb_nodes = nb_nodes
-            data.nb_apps = nb_apps
-            data.nb_users = nb_users
-            data.run = run
-            solvers.append(data)
+            for use_heuristic in [True, False]:
+                data = Solver_Data()
+                data.solver = solver
+                data.params = {
+                    "input": input,
+                    "objective": obj_func,
+                    "use_heuristic": use_heuristic,
+                    "pool_size": GA_POOL_SIZE
+                }
+                data.title = "moga" + "_hi" if use_heuristic else ""
+                data.version = s_version
+                data.objective = "|".join(obj_title)
+                data.nb_nodes = nb_nodes
+                data.nb_apps = nb_apps
+                data.nb_users = nb_users
+                data.run = run
+                solvers.append(data)
 
         return solvers
 
@@ -158,7 +165,8 @@ class Exp_2():
             "run": data.run,
             "solution": data.title,
             "version": data.version,
-            "time": data.time
+            "time": data.time,
+            "objective": data.objective,
         }
 
         for m_title, m_func_name in self.metrics:
@@ -184,6 +192,7 @@ class Exp_2():
                output["apps"], output["users"], output["run"]
         ))
         print("\t {:15} : {} s".format("time", output["time"]))
+        print("\t {:15} : {}".format("objective", output["objective"]))
 
         for m_title, m_name in self.metrics:
             print("\t {:15} : {}".format(m_title, output[m_title]))
