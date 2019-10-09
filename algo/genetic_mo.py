@@ -32,9 +32,9 @@ class SP_NSGAII(NSGAII):
 
 
 class MO_Chromosome(SP_Chromosome, NSGAII_Chromosome):
-    def __init__(self, input, objectives=None):
+    def __init__(self, input, objectives=None, use_bootstrap=True):
         NSGAII_Chromosome.__init__(self)
-        SP_Chromosome.__init__(self, input)
+        SP_Chromosome.__init__(self, input, use_bootstrap=use_bootstrap)
         if objectives is None:
             objectives = [
                 self.metric.get_max_deadline_violation,
@@ -60,6 +60,7 @@ def solve(input,
           dominance_error=DOMINANCE_ERROR,
           stop_threshold=STOP_THRESHOLD,
           objective=None,
+          use_bootstrap=True,
           pool_size=POOL_SIZE):
 
     chromossome = MO_Chromosome(input, objective)

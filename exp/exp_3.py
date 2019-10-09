@@ -52,7 +52,14 @@ class Exp_3():
                 param = {'elite': e, 'mutant': m}
                 self.scenarios.append(param)
 
-        self.objective = ("max_dv", "get_max_deadline_violation")
+        self.single_objective = ("max_dv", "get_max_deadline_violation")
+        self.multi_objective = [
+            ("max_dv", "get_max_deadline_violation"),
+            ("cost", "get_overall_cost"),
+            ("avg_unavail", "get_avg_unavailability"),
+            # ("avg_rt", "get_avg_response_time"),
+            # ("power", "get_overall_power_comsumption"),
+        ]
 
         self.metrics = [
             ("max_dv", "get_max_deadline_violation"),
@@ -105,24 +112,43 @@ class Exp_3():
                 self._write_output(output)
 
     def _get_solvers(self, nb_elites, nb_mutants, run, input, metric):
-        obj_title, obj_func_name = self.objective
-        obj_func = getattr(metric, obj_func_name)
-
         solvers = []
 
+        # so_title, so_func_name = self.single_objective
+        # so_func = getattr(metric, so_func_name)
+        # data = Solver_Data()
+        # data.solver = algo.genetic
+        # data.params = {
+        #     "input": input,
+        #     "objective": so_func,
+        #     "use_bootstrap": True,
+        #     "pool_size": GA_POOL_SIZE,
+        #     "elite_proportion": nb_elites,
+        #     "mutant_proportion": nb_mutants
+        # }
+        # data.title = "genetic"
+        # data.version = "bootstrap"
+        # data.objective = so_title
+        # data.elite = nb_elites
+        # data.mutant = nb_mutants
+        # data.run = run
+        # solvers.append(data)
+
+        mo_func = [getattr(metric, obj[1]) for obj in self.multi_objective]
+        mo_title = [obj[0] for obj in self.multi_objective]
         data = Solver_Data()
-        data.solver = algo.genetic
+        data.solver = algo.genetic_mo
         data.params = {
             "input": input,
-            "objective": obj_func,
+            "objective": mo_func,
             "use_bootstrap": True,
             "pool_size": GA_POOL_SIZE,
             "elite_proportion": nb_elites,
             "mutant_proportion": nb_mutants
         }
-        data.title = "genetic"
-        data.version = "bootstrap"
-        data.objective = obj_title
+        data.title = "genetic_mo"
+        data.version = "v1"
+        data.objective = "-".join(mo_title)
         data.elite = nb_elites
         data.mutant = nb_mutants
         data.run = run

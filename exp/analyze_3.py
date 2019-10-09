@@ -55,11 +55,11 @@ Z_PARAM = {
 
 X_PARAM = {
     'elite': {
-        'label': 'Elite Proportion',
+        'label': 'Elite Proportion - %',
         'limit': [0, 1]
     },
     'mutant': {
-        'label': 'Mutant Proportion',
+        'label': 'Mutant Proportion - %',
         'limit': [0, 1]
     },
 }
@@ -125,11 +125,9 @@ def format_metric(value, metric):
 
 
 def format_field(value, field):
-    value = round(float(value), 2)
-    if field == 'elite':
-        value = 100 * value
-    elif field == 'mutant':
-        value = 100 * value
+    value = float(value)
+    if field == 'elite' or field == 'mutant':
+        value = round(100 * value)
 
     return value
 
@@ -150,13 +148,12 @@ def calc_stats(values):
 def gen_figure(data, metric, x, x_field, y, y_field,
                data_filter, filename=None):
     plt.clf()
-    mpl.rcParams.update({'font.size': 20})
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    # mpl.rcParams.update({'font.size': 20})
+    ax = plt.axes(projection='3d')
 
     filtered = filter_data(data, **data_filter)
     z = []
-    z_min = 0.0
+    z_min = INF
     z_max = 0.0
     for x_value in x:
         for y_value in y:
@@ -167,9 +164,11 @@ def gen_figure(data, metric, x, x_field, y, y_field,
                 values = list(map(lambda r: format_metric(r[metric], metric), xy_data))
                 mean, error = calc_stats(values)
                 z_value = mean
-                print("x {:.1f} y {:.1f} z {:.4f}".format(x_value, y_value, z_value))
+                print("x={:.1f}, y={:.1f}, z={:.4f}".format(x_value, y_value, z_value))
                 if z_value > z_max:
                     z_max = z_value
+                if z_value < z_min:
+                    z_min = z_value
             z.append(z_value)
 
     x_param = X_PARAM[x_field]
@@ -190,9 +189,9 @@ def gen_figure(data, metric, x, x_field, y, y_field,
     # plt.grid(True)
 
     x, y = np.meshgrid(x_ticks, y_ticks)
-    norm = mpl.colors.Normalize(vmin=z_min, vmax=z_max)
+    # norm = mpl.colors.Normalize(vmin=z_min, vmax=z_max)
     # norm = mpl.colors.LogNorm(vmin=z_min, vmax=z_max)
-    ax.scatter(x, y, z, c=z, cmap='seismic', norm=norm)
+    ax.scatter(x, y, z, c=z, cmap='seismic', vmin=z_min, vmax=z_max)
     if not filename:
         plt.show()
     else:
@@ -219,9 +218,9 @@ def run():
             'title': 'ga_em_params',
             'filter': {},
             'x_field': 'elite',
-            'x_values': np.arange(0, 1.1, 0.2),
+            'x_values': np.arange(0, 1.1, 0.1),
             'y_field': 'mutant',
-            'y_values': np.arange(0, 1.1, 0.2)
+            'y_values': np.arange(0, 1.1, 0.1)
         },
     ]
 

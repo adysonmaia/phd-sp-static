@@ -137,7 +137,7 @@ class Exp_2():
             data.solver = solver
             data.params = {
                 "input": input,
-                "objectives": obj_func,
+                "objective": obj_func,
                 "pool_size": GA_POOL_SIZE
             }
             data.title = "genetic_mo"
