@@ -71,7 +71,7 @@ class Exp_5():
     def run(self):
         with open(self.output_filename, "w") as csv_file:
             field_names = [
-                "threshold", "run", "solution", "version",
+                "stop_threshold", "run", "solution", "version",
                 "time", "objective"
             ]
             for m_title, m_func_name in self.metrics:
