@@ -123,7 +123,7 @@ class Exp_2():
                     "use_heuristic": use_heuristic,
                     "pool_size": GA_POOL_SIZE
                 }
-                data.title = "soga" + "_hi" if use_heuristic else ""
+                data.title = "soga" + ("_hi" if use_heuristic else "")
                 data.version = obj_title
                 data.objective = obj_title
                 data.nb_nodes = nb_nodes
@@ -146,7 +146,7 @@ class Exp_2():
                     "use_heuristic": use_heuristic,
                     "pool_size": GA_POOL_SIZE
                 }
-                data.title = "moga" + "_hi" if use_heuristic else ""
+                data.title = "moga" + ("_hi" if use_heuristic else "")
                 data.version = s_version
                 data.objective = "|".join(obj_title)
                 data.nb_nodes = nb_nodes
@@ -207,4 +207,4 @@ def run():
 
 
 if __name__ == '__main__':
-    print("Execute as 'python3 main.py exp_1'")
+    print("Execute as 'python3 main.py exp_2'")
