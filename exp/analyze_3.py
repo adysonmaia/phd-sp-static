@@ -24,7 +24,7 @@ LINE_FORMATS = [
 
 Z_PARAM = {
     'max_dv': {
-        'label': 'DL Violation - ms',
+        'label': 'Deadline Violation - ms',
         'limit': [0.0, 13.0],
         'labelpad': 10
     },
@@ -39,7 +39,7 @@ Z_PARAM = {
         'labelpad': 10
     },
     'cost': {
-        'label': 'Overall Cost',
+        'label': 'Cost',
         'limit': [1200.0, 1600.0],
         'labelpad': 20
     },
@@ -193,18 +193,23 @@ def gen_figure(data, metric, x, x_field, y, y_field,
 
     ax.set_xlabel(x_param['label'], labelpad=20)
     ax.set_ylabel(y_param['label'], labelpad=20)
-    ax.set_zlabel(z_param['label'], labelpad=z_param['labelpad'])
+    # ax.set_zlabel(z_param['label'], labelpad=z_param['labelpad'])
     # ax.set_xlim(*x_param['limit'])
     # ax.set_ylim(*y_param['limit'])
     ax.set_zlim(z_min, z_max)
     # ax.set_xticks(x_ticks)
     # ax.set_yticks(y_ticks)
 
-    color_map = 'seismic'
-    # color_map = 'plasma'
+    # color_map = 'seismic'
+    color_map = 'plasma'
+    # color_map = 'inferno'
+    # color_map = 'magma'
+    # color_map = 'viridis'
 
     plt.subplots_adjust(bottom=0.1, top=1.0, left=-0.10, right=0.92)
-    ax.plot_surface(x_2d, y_2d, z_2d, cmap=color_map, vmin=z_min, vmax=z_max)
+    surf = ax.plot_surface(x_2d, y_2d, z_2d, cmap=color_map, vmin=z_min, vmax=z_max)
+    cb = plt.colorbar(surf, shrink=0.5)
+    cb.set_label(z_param['label'])
 
     # plt.show()
     if not filename:

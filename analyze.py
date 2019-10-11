@@ -6,6 +6,11 @@ def exp_1(args=[]):
     exp.analyze_1.run()
 
 
+def exp_2(args=[]):
+    import exp.analyze_2
+    exp.analyze_2.run()
+
+
 def exp_3(args=[]):
     import exp.analyze_3
     exp.analyze_3.run()

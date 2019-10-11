@@ -63,7 +63,7 @@ def solve(input,
           use_heuristic=True,
           pool_size=POOL_SIZE):
 
-    chromossome = MO_Chromosome(input, objective)
+    chromossome = MO_Chromosome(input, objective, use_heuristic=use_heuristic)
     genetic = SP_NSGAII(chromossome,
                         nb_generations=nb_generations,
                         population_size=population_size,
