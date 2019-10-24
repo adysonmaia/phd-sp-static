@@ -75,12 +75,12 @@ def exp_4(args=[]):
     ]
 
     versions = [
-        ("cloud", "cloud"),
-        ("net_delay", "net_delay"),
-        ("cluster", "cluster_metoids"),
-        ("deadline", "deadline"),
+        # ("cloud", "cloud"),
+        # ("net_delay", "net_delay"),
+        # ("cluster", "cluster_metoids"),
+        # ("deadline", "deadline"),
         ("net_delay_deadline", ["net_delay", "deadline"]),
-        ("cluster_deadline", ["cluster_metoids", "deadline"]),
+        # ("cluster_deadline", ["cluster_metoids", "deadline"]),
     ]
 
     for title, version in versions:
@@ -187,7 +187,7 @@ def exp_2(args=[]):
         # ("genetic 2", algo.genetic_2),
         # ("genetic cluster", algo.genetic_cluster),
         # ("genetic penality", algo.genetic_penality),
-        ("genetic mo", algo.genetic_mo),
+        # ("genetic mo", algo.genetic_mo),
         # ("genetic mo 2", algo.genetic_mo_2),
         # ("genetic mo 3", algo.genetic_mo_3),
         # ("cluster", algo.cluster)

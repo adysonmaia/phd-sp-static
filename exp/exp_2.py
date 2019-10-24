@@ -7,7 +7,7 @@ from util import generator
 from algo.util.metric import Metric
 import algo
 
-EXP_POOL_SIZE = 3
+EXP_POOL_SIZE = 5
 GA_POOL_SIZE = 3
 
 
@@ -62,7 +62,7 @@ class Exp_2():
             ("avg_rt", "get_avg_response_time"),
             ("cost", "get_overall_cost"),
             ("avg_unavail", "get_avg_unavailability"),
-            ("power", "get_overall_power_comsumption"),
+            # ("power", "get_overall_power_comsumption"),
         ]
 
         self.app_types = ["eMBB", "URLLC", "mMTC"]

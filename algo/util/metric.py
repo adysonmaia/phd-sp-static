@@ -212,11 +212,10 @@ class Metric():
                 if not place[a, h]:
                     continue
 
+                node_load = int(sum([load[a, b, h] for b in r_nodes]))
                 for r in self.resources:
                     k1, k2 = app.get_demand(r)
                     cost_1, cost_2 = node.get_cost(r)
-
-                    node_load = int(sum([load[a, b, h] for b in r_nodes]))
                     demand = k1 * node_load + k2
                     total_cost += cost_1 * demand + cost_2
 
@@ -243,7 +242,7 @@ class Metric():
             avg += availability
 
         if nb_apps > 0:
-            avg = avg / nb_apps
+            avg = avg / float(nb_apps)
         return avg
 
     def get_max_unavailability(self, place, load):
@@ -281,7 +280,7 @@ class Metric():
             avg += unavailability
 
         if nb_apps > 0:
-            avg = avg / nb_apps
+            avg = avg / float(nb_apps)
         return avg
 
 

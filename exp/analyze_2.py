@@ -11,18 +11,17 @@ LINE_FORMATS = [
     {'fmt': '-^'},
     {'fmt': '-v'},
     {'fmt': '-<'},
-    {'fmt': '-d', 'fillstyle': 'none'},
-    {'fmt': '-d'},
-    {'fmt': '-s', 'fillstyle': 'none'},
+    {'fmt': '->'},
     {'fmt': '-s'},
-    {'fmt': '-o', 'fillstyle': 'none'},
     {'fmt': '-o'},
+    {'fmt': '-d'},
+    {'fmt': '-*'},
 ]
 
 Y_PARAM = {
     'max_dv': {
         'label': 'Deadline Violation - ms',
-        'limit': [0.0, 14.0]
+        'limit': [0.0, 13.0]
     },
     'dsr': {
         'label': 'Deadline Satisfaction - %',
@@ -34,7 +33,7 @@ Y_PARAM = {
     },
     'cost': {
         'label': 'Cost',
-        'limit': [0.0, 2500.0]
+        'limit': [0.0, 1600.0]
     },
     'max_unavail': {
         'label': 'Availability - %',
@@ -42,11 +41,16 @@ Y_PARAM = {
     },
     'avg_unavail': {
         'label': 'Availability - %',
-        'limit': [70.0, 100.0]
+        'limit': [85.0, 100.0]
     },
     'avg_avail': {
         'label': 'Availability - %',
         'limit': [0.0, 100.0]
+    },
+    'time': {
+        'label': 'Execution Time - s',
+        'limit': [-5.0, 800.0]
+        # 'limit': [-5.0, 6000.0]
     }
 }
 
@@ -74,23 +78,23 @@ SOL_LABEL = {
     ('heuristic', 'deadline'): r'DL',
     ('heuristic', 'net_delay_deadline'): r'NetDelay+DL',
     ('heuristic', 'cluster_deadline'): r'Cluster+DL',
-    ('soga', 'max_dv'): r'SOGA',
-    ('soga', 'cost'): r'SOGA',
-    ('soga', 'avg_unavail'): r'SOGA',
-    ('soga_hi', 'max_dv'): r'SOGA+HI',
-    ('soga_hi', 'cost'): r'SOGA+HI',
-    ('soga_hi', 'avg_unavail'): r'SOGA+HI',
-    ('moga', 'preferred'): r'MOGA',
-    ('moga', 'pareto'): r'MOGA_P',
-    ('moga_hi', 'preferred'): r'MOGA+HI',
-    ('moga_hi', 'pareto'): r'MOGA_P+HI',
+    ('soga', 'max_dv'): r'SOGA($f_{dv}$)',
+    ('soga', 'cost'): r'SOGA($f_{cost}$)',
+    ('soga', 'avg_unavail'): r'SOGA($f_{fail}$)',
+    ('soga_hi', 'max_dv'): r'SOHGA($f_{dv}$)',
+    ('soga_hi', 'cost'): r'SOHGA($f_{cost}$)',
+    ('soga_hi', 'avg_unavail'): r'SOHGA($f_{fail}$)',
+    ('moga', 'preferred'): r'MOGA($\prec^1$)',
+    ('moga', 'pareto'): r'MOGA($\prec$)',
+    ('moga_hi', 'preferred'): r'MOHGA($\prec^1$)',
+    ('moga_hi', 'pareto'): r'MOHGA($\prec$)',
 }
 
 
 def get_data_from_file(filename):
     results = []
     with open(filename) as csv_file:
-        csv_reader = csv.DictReader(csv_file)
+        csv_reader = csv.DictReader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
             if line_count > 0:
@@ -171,10 +175,10 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
         line += 1
 
     # ncol = 4 if len(solutions) > 4 else 3
-    ncol = 3
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.17),
-               numpoints=1, ncol=ncol, columnspacing=0.5, fontsize=20)
-    plt.subplots_adjust(bottom=0.2, top=0.97, left=0.12, right=0.96)
+    ncol = 2
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.17),
+    #            numpoints=1, ncol=ncol, columnspacing=0.5, fontsize=20)
+    # plt.subplots_adjust(bottom=0.2, top=0.97, left=0.12, right=0.96)
 
     x_param = X_PARAM[x_field]
     y_param = Y_PARAM[metric]
@@ -188,6 +192,7 @@ def gen_figure(data, solutions, metric, x, x_field, data_filter, filename=None):
     else:
         plt.xticks(x)
     plt.grid(True)
+
     if not filename:
         plt.show()
     else:
@@ -215,48 +220,62 @@ def run():
     ]
 
     dv_solutions = [
-        # ('milp', ''),
-        # ('heuristic', 'cloud'),
-        # ('heuristic', 'net_delay_deadline'),
-        # ('heuristic', 'cluster_deadline'),
+        ('heuristic', 'cloud'),
+        ('heuristic', 'net_delay_deadline'),
+        ('heuristic', 'cluster_deadline'),
+        ('soga_hi', 'max_dv'),
         # ('soga', 'max_dv'),
-        # ('soga_hi', 'max_dv'),
-        # ('moga', 'preferred'),
-        ('moga', 'pareto'),
-        # ('moga_hi', 'preferred'),
+        ('moga', 'preferred'),
+        ('moga_hi', 'preferred'),
         ('moga_hi', 'pareto'),
+        # ('moga', 'pareto'),
+        ('milp', ''),
     ]
 
     cost_solutions = [
         ('heuristic', 'cloud'),
         ('heuristic', 'net_delay_deadline'),
         ('heuristic', 'cluster_deadline'),
-        ('soga', 'cost'),
         ('soga_hi', 'cost'),
+        # ('soga', 'cost'),
         ('moga', 'preferred'),
-        ('moga', 'pareto'),
         ('moga_hi', 'preferred'),
         ('moga_hi', 'pareto'),
+        # ('moga', 'pareto'),
     ]
 
     avail_solutions = [
         ('heuristic', 'cloud'),
         ('heuristic', 'net_delay_deadline'),
         ('heuristic', 'cluster_deadline'),
-        ('soga', 'avg_unavail'),
         ('soga_hi', 'avg_unavail'),
+        # ('soga', 'avg_unavail'),
         ('moga', 'preferred'),
-        ('moga', 'pareto'),
         ('moga_hi', 'preferred'),
         ('moga_hi', 'pareto'),
+        # ('moga', 'pareto'),
+    ]
+
+    time_solutions = [
+        ('heuristic', 'cloud'),
+        ('heuristic', 'net_delay_deadline'),
+        ('heuristic', 'cluster_deadline'),
+        ('soga_hi', 'max_dv'),
+        # ('soga', 'max_dv'),
+        ('moga', 'preferred'),
+        ('moga_hi', 'preferred'),
+        ('moga_hi', 'pareto'),
+        # ('moga', 'pareto'),
+        ('milp', ''),
     ]
 
     metric_solutions = {
         'max_dv': dv_solutions,
         # 'dsr': all_solutions,
         # 'avg_rt': all_solutions,
-        # 'cost': cost_solutions,
-        # 'avg_unavail': avail_solutions
+        'cost': cost_solutions,
+        'avg_unavail': avail_solutions,
+        'time': time_solutions
     }
 
     params = [
